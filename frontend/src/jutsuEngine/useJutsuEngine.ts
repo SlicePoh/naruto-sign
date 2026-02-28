@@ -10,19 +10,14 @@ import { useAppStore } from '../store/useAppStore';
  */
 export function useJutsuEngine(currentSign: SignLabel) {
   const detectorRef = useRef<SequenceDetector | null>(null);
-  const setActiveJutsu = useAppStore((state) => state.setActiveJutsu);
+  const triggerJutsu = useAppStore((state) => state.triggerJutsu);
   const addToBuffer = useAppStore((state) => state.addToBuffer);
 
   // Initialize detector
   useEffect(() => {
     const detector = new SequenceDetector((jutsu: JutsuKey) => {
       console.log(`Jutsu detected: ${jutsu}`);
-      setActiveJutsu(jutsu);
-      
-      // Auto-clear jutsu after 4 seconds
-      setTimeout(() => {
-        setActiveJutsu(null);
-      }, 4000);
+      triggerJutsu(jutsu, 4000);
     });
 
     detectorRef.current = detector;
@@ -30,7 +25,7 @@ export function useJutsuEngine(currentSign: SignLabel) {
     return () => {
       detector.reset();
     };
-  }, [setActiveJutsu]);
+  }, [triggerJutsu]);
 
   // Process new signs
   useEffect(() => {

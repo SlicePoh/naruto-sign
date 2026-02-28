@@ -1,9 +1,11 @@
 import { useEffect, useRef } from 'react';
 import { useCamera } from './camera/useCamera';
 import { useHandLandmarks } from './handTracking/useHandLandmarks';
+import { HandOverlay } from './handTracking/HandOverlay';
 import { extractFeatures } from './classifier/extractFeatures';
 import { classifySign } from './classifier/ruleClassifier';
 import type { SignLabel } from './classifier/types';
+import { predictSignFromLandmarks } from './backend/signClient';
 import { useJutsuEngine } from './jutsuEngine/useJutsuEngine';
 import { ThreeScene } from './scene/ThreeScene';
 import { useAppStore } from './store/useAppStore';
@@ -22,9 +24,11 @@ function App() {
   const confidence = useAppStore((state) => state.confidence);
   const setCurrentSign = useAppStore((state) => state.setCurrentSign);
   const setConfidence = useAppStore((state) => state.setConfidence);
+  const triggerJutsu = useAppStore((state) => state.triggerJutsu);
   
   // Debouncing: Track sign stability
   const signStabilityRef = useRef({ sign: 'unknown' as SignLabel, count: 0, required: 5 });
+  const backendReqRef = useRef<{ abort?: AbortController; lastSent: number }>({ lastSent: 0 });
   
   // Use jutsu engine to detect sequences
   useJutsuEngine(currentSign);
@@ -106,48 +110,80 @@ function App() {
     const ramFromTwoHands = detectTwoHandRam(hands);
     const snakeFromTwoHands = ramFromTwoHands === 'ram' ? 'unknown' : detectTwoHandSnake(hands);
 
-    if ((landmarks && landmarks.length === 21) || snakeFromTwoHands === 'snake' || ramFromTwoHands === 'ram') {
-      try {
-        const detectedSign: SignLabel =
-          ramFromTwoHands === 'ram'
-            ? 'ram'
-            : snakeFromTwoHands === 'snake'
-              ? 'snake'
-              : classifySign(extractFeatures(landmarks!));
+    const hasAnySignal =
+      (landmarks && landmarks.length === 21) || snakeFromTwoHands === 'snake' || ramFromTwoHands === 'ram';
 
-        const requiredStableFrames = (ramFromTwoHands === 'ram' || snakeFromTwoHands === 'snake') ? 2 : 5;
-        
-        // Debouncing: Only update if sign is stable for multiple frames
-        if (detectedSign === signStabilityRef.current.sign) {
-          signStabilityRef.current.count++;
-          // If we upgraded to a stronger detection path (two-hand), allow faster confirmation.
-          signStabilityRef.current.required = Math.min(signStabilityRef.current.required, requiredStableFrames);
-        } else {
-          signStabilityRef.current.sign = detectedSign;
-          signStabilityRef.current.count = 1;
-          signStabilityRef.current.required = requiredStableFrames;
-        }
-        
-        // Only update state if sign has been stable for required frames
-        if (signStabilityRef.current.count >= signStabilityRef.current.required) {
-          if (currentSign !== detectedSign) {
-            setCurrentSign(detectedSign);
-            if (detectedSign !== 'unknown') {
-              console.log('✅ Confirmed sign:', detectedSign.toUpperCase());
-            }
-          }
-        }
-        
-        setConfidence((ramFromTwoHands === 'ram' || snakeFromTwoHands === 'snake') ? 1.0 : mpConfidence);
-      } catch (err) {
-        console.error('Error processing landmarks:', err);
-        setConfidence(0);
-      }
-    } else {
+    if (!hasAnySignal) {
       setCurrentSign('unknown');
       setConfidence(0);
       signStabilityRef.current = { sign: 'unknown', count: 0, required: 5 };
+      return;
     }
+
+    const now = Date.now();
+    const THROTTLE_MS = 150;
+    if (now - backendReqRef.current.lastSent < THROTTLE_MS) {
+      return;
+    }
+    backendReqRef.current.lastSent = now;
+
+    // Cancel previous in-flight request
+    if (backendReqRef.current.abort) {
+      backendReqRef.current.abort.abort();
+    }
+    const abort = new AbortController();
+    backendReqRef.current.abort = abort;
+
+    const localFallback = (): { sign: SignLabel; confidence: number; strong: boolean } => {
+      try {
+        if (ramFromTwoHands === 'ram') return { sign: 'ram', confidence: 1.0, strong: true };
+        if (snakeFromTwoHands === 'snake') return { sign: 'snake', confidence: 1.0, strong: true };
+        const sign = classifySign(extractFeatures(landmarks!));
+        return { sign, confidence: sign === 'unknown' ? 0 : mpConfidence, strong: false };
+      } catch {
+        return { sign: 'unknown', confidence: 0, strong: false };
+      }
+    };
+
+    (async () => {
+      let detectedSign: SignLabel = 'unknown';
+      let detectedConfidence = 0;
+      let strong = false;
+
+      try {
+        const resp = await predictSignFromLandmarks(hands, abort.signal);
+        detectedSign = resp.sign;
+        detectedConfidence = resp.confidence;
+        strong = resp.hands >= 2 && (resp.sign === 'ram' || resp.sign === 'snake');
+      } catch {
+        const fallback = localFallback();
+        detectedSign = fallback.sign;
+        detectedConfidence = fallback.confidence;
+        strong = fallback.strong;
+      }
+
+      const requiredStableFrames = strong ? 2 : 5;
+
+      if (detectedSign === signStabilityRef.current.sign) {
+        signStabilityRef.current.count++;
+        signStabilityRef.current.required = Math.min(signStabilityRef.current.required, requiredStableFrames);
+      } else {
+        signStabilityRef.current.sign = detectedSign;
+        signStabilityRef.current.count = 1;
+        signStabilityRef.current.required = requiredStableFrames;
+      }
+
+      if (signStabilityRef.current.count >= signStabilityRef.current.required) {
+        if (currentSign !== detectedSign) {
+          setCurrentSign(detectedSign);
+          if (detectedSign !== 'unknown') {
+            console.log('✅ Confirmed sign:', detectedSign.toUpperCase());
+          }
+        }
+      }
+
+      setConfidence(detectedConfidence);
+    })();
   }, [hands, landmarks, mpConfidence, setCurrentSign, setConfidence, currentSign]);
 
   return (
@@ -164,6 +200,18 @@ function App() {
       {/* 3D Scene with video background and effects */}
       <div className="scene-container">
         <ThreeScene videoElement={videoRef.current} />
+        <HandOverlay hands={hands} />
+      </div>
+
+      {/* Manual test controls (clickable) */}
+      <div className="test-controls">
+        <button
+          type="button"
+          className="test-button"
+          onClick={() => triggerJutsu('shadowClone', 4000)}
+        >
+          Test Shadow Clone
+        </button>
       </div>
 
       {/* UI Overlay */}

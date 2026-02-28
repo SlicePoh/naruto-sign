@@ -1,6 +1,6 @@
 # Backend (Python)
 
-FastAPI service that will classify Naruto hand signs.
+Starlette + Uvicorn service that classifies Naruto hand signs.
 
 ## API
 
@@ -28,5 +28,10 @@ cd backend
 python -m venv .venv
 .\.venv\Scripts\Activate.ps1
 pip install -r requirements.txt
-uvicorn app.main:app --reload --port 8000
+
+# Optional (only when you need ML training/inference)
+# pip install -r requirements-ml.txt
+
+# Start API
+uvicorn app.main:app --port 8000
 ```
