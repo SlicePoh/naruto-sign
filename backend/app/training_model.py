@@ -10,6 +10,7 @@ np.random.seed(42)
 DATA_PATH = "dataset.csv"
 
 df = pd.read_csv(DATA_PATH, header=None)
+df = df.sample(frac=1, random_state=42).reset_index(drop=True)
 
 X = df.iloc[:, :-1].values
 y = df.iloc[:, -1].values
