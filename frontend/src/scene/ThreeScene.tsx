@@ -27,12 +27,11 @@ export function ThreeScene({ videoElement }: ThreeSceneProps) {
   }
 
   return (
-    <Canvas
-      camera={{ position: [0, 0, 5], fov: 50 }}
+    <Canvas camera={{ position: [0, 0, 5], fov: 50 }}
+      gl={{ outputColorSpace: THREE.SRGBColorSpace }}
       style={{ width: '100%', height: '100%' }}
     >
       <ambientLight intensity={1} />
-      
       {/* Main video background plane */}
       <VideoPlane videoElement={videoElement} />
     </Canvas>
@@ -55,7 +54,7 @@ function VideoPlane({ videoElement }: { videoElement: HTMLVideoElement }) {
     texture.format = THREE.RGBAFormat;
     // Prevent double-gamma: the renderer applies sRGB output encoding,
     // so keep the video texture in linear space to avoid a washed-out / overly-bright feed.
-    texture.colorSpace = THREE.LinearSRGBColorSpace;
+    texture.colorSpace = THREE.SRGBColorSpace;
     textureRef.current = texture;
 
     // Apply to material

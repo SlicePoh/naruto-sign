@@ -224,8 +224,8 @@ body {
 }
 
 .instructions {
-  background: rgba(0, 0, 0, 0.7);
-  padding: 20px;
+  background: rgba(0, 0, 0, 0.1);
+  padding: 0.5rem;
   border-radius: 10px;
   margin-top: auto;
   backdrop-filter: blur(10px);

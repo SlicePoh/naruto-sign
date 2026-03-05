@@ -211,11 +211,7 @@ function App() {
               <strong>👥 Shadow:</strong> Crossed fingers, clone seal
             </div>
           </div>
-          
-          <p style={{ marginTop: '15px', color: '#ffa500', fontWeight: 'bold', fontSize: '0.85rem' }}>
-            Model-powered detection with 9 trained signs.<br/>
-            Hold the Shadow sign for Shadow Clone Jutsu!
-          </p>
+    
         </div>
       </div>
     </div>

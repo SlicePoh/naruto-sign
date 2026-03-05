@@ -59,12 +59,14 @@ function getVideoRect(
 export function ShadowClone({ videoElement, active }: ShadowCloneProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const rafRef = useRef<number>(0);
+  const activationTimeRef = useRef<number>(0);
 
   // Generate random clone positions once per activation
   const [clonePositions, setClonePositions] = useState<ClonePosition[]>([]);
 
   useEffect(() => {
     if (active) {
+      activationTimeRef.current = Date.now();
       const positions = generateClonePositions();
       console.log(`🥷 Spawning ${positions.length} shadow clones`);
       setClonePositions(positions);
@@ -122,6 +124,7 @@ export function ShadowClone({ videoElement, active }: ShadowCloneProps) {
       cw,
       ch,
       clonePositions,
+      activationTimeRef.current,
     );
   }, [active, videoElement, maskCanvas, clonePositions]);
 
