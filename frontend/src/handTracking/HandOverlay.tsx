@@ -1,6 +1,7 @@
 import { useEffect, useRef } from 'react';
 import type { HandLandmarks } from '../classifier/types';
 
+// Matches backend HAND_CONNECTIONS exactly (no palm cross connections)
 const CONNECTIONS: ReadonlyArray<readonly [number, number]> = [
   // Thumb
   [0, 1], [1, 2], [2, 3], [3, 4],
@@ -12,11 +13,7 @@ const CONNECTIONS: ReadonlyArray<readonly [number, number]> = [
   [0, 13], [13, 14], [14, 15], [15, 16],
   // Pinky
   [0, 17], [17, 18], [18, 19], [19, 20],
-  // Palm cross connections
-  [5, 9], [9, 13], [13, 17],
 ] as const;
-
-const TIP_INDICES = [4, 8, 12, 16, 20] as const;
 
 export function HandOverlay({ hands }: { hands: HandLandmarks[] }) {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
@@ -51,9 +48,9 @@ export function HandOverlay({ hands }: { hands: HandLandmarks[] }) {
       const rect = parent.getBoundingClientRect();
       ctx.clearRect(0, 0, rect.width, rect.height);
 
-      // Lines: green
+      // Lines: blue — matches backend cv2.line color (255, 0, 0) = blue in BGR
       ctx.lineWidth = 2;
-      ctx.strokeStyle = 'rgba(0, 255, 0, 0.9)';
+      ctx.strokeStyle = 'rgba(0, 0, 255, 0.9)';
 
       for (const hand of hands ?? []) {
         if (!hand || hand.length !== 21) continue;
@@ -76,25 +73,14 @@ export function HandOverlay({ hands }: { hands: HandLandmarks[] }) {
           ctx.stroke();
         }
 
-        // Landmarks (small green dots)
+        // Landmarks: green circles — matches backend cv2.circle (0, 255, 0), radius 4
         ctx.fillStyle = 'rgba(0, 255, 0, 0.9)';
         for (let i = 0; i < hand.length; i++) {
           const p = hand[i];
           const x = (1 - p.x) * rect.width;
           const y = p.y * rect.height;
           ctx.beginPath();
-          ctx.arc(x, y, 2.5, 0, Math.PI * 2);
-          ctx.fill();
-        }
-
-        // Fingertip endpoints (red)
-        ctx.fillStyle = 'rgba(255, 0, 0, 0.95)';
-        for (const idx of TIP_INDICES) {
-          const p = hand[idx];
-          const x = (1 - p.x) * rect.width;
-          const y = p.y * rect.height;
-          ctx.beginPath();
-          ctx.arc(x, y, 5, 0, Math.PI * 2);
+          ctx.arc(x, y, 4, 0, Math.PI * 2);
           ctx.fill();
         }
       }

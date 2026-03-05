@@ -39,8 +39,9 @@ export class SequenceDetector {
     this.lastSign = sign;
     this.lastSignTime = now;
 
-    // Keep buffer size limited (max 3 for current jutsus)
-    if (this.buffer.length > 3) {
+    // Keep buffer size limited (max length of longest jutsu)
+    const maxLen = Math.max(...Object.values(JUTSUS).map(s => s.length));
+    if (this.buffer.length > maxLen) {
       this.buffer.shift();
     }
 
@@ -64,14 +65,15 @@ export class SequenceDetector {
   }
 
   /**
-   * Check if buffer matches a sequence
+   * Check if buffer ends with a sequence
    */
   private matchesSequence(sequence: readonly SignLabel[]): boolean {
-    if (this.buffer.length !== sequence.length) {
+    if (this.buffer.length < sequence.length) {
       return false;
     }
 
-    return this.buffer.every((sign, index) => sign === sequence[index]);
+    const tail = this.buffer.slice(-sequence.length);
+    return tail.every((sign, index) => sign === sequence[index]);
   }
 
   /**

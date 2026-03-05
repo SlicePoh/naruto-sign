@@ -95,7 +95,7 @@ def draw_hand(hand_landmarks, frame):
         cv2.line(frame, points[start], points[end], (255,0,0), 2)
 
 # RECORDING + SMOOTHING
-label = "tiger"
+label = "neutral"
 record = False
 file = open("dataset.csv", mode="a", newline="")
 writer = csv.writer(file)

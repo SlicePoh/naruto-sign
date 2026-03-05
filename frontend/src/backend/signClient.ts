@@ -7,6 +7,17 @@ export interface BackendPredictResponse {
   hands: number;
 }
 
+export interface HealthResponse {
+  status: string;
+  model_classes: string[];
+}
+
+export async function checkBackendHealth(): Promise<HealthResponse> {
+  const res = await fetch(`${getBaseUrl()}/health`);
+  if (!res.ok) throw new Error(`Health check failed: ${res.status}`);
+  return (await res.json()) as HealthResponse;
+}
+
 type Landmark = { x: number; y: number; z: number };
 
 type PredictLandmarksRequest = {
@@ -15,7 +26,7 @@ type PredictLandmarksRequest = {
 
 const DEFAULT_BASE_URL = '/api';
 
-function getBaseUrl(): string {
+export function getBaseUrl(): string {
   const envUrl = (import.meta as any).env?.VITE_BACKEND_BASE_URL as string | undefined;
   return (envUrl && envUrl.trim()) ? envUrl.trim().replace(/\/$/, '') : DEFAULT_BASE_URL;
 }

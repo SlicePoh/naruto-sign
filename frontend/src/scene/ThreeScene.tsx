@@ -1,8 +1,6 @@
 import { useRef, useEffect } from 'react';
 import { Canvas, useFrame } from '@react-three/fiber';
 import * as THREE from 'three';
-import { ShadowClone } from '../effects/ShadowClone';
-import { useAppStore } from '../store/useAppStore';
 
 interface ThreeSceneProps {
   videoElement: HTMLVideoElement | null;
@@ -10,11 +8,9 @@ interface ThreeSceneProps {
 
 /**
  * Main 3D scene component
- * Renders video background and conditionally shows jutsu effects
+ * Renders video background (jutsu effects are rendered as DOM overlays)
  */
 export function ThreeScene({ videoElement }: ThreeSceneProps) {
-  const activeJutsu = useAppStore((state) => state.activeJutsu);
-
   if (!videoElement) {
     return (
       <div style={{ 
@@ -39,9 +35,6 @@ export function ThreeScene({ videoElement }: ThreeSceneProps) {
       
       {/* Main video background plane */}
       <VideoPlane videoElement={videoElement} />
-
-      {/* Conditional jutsu effects */}
-      {activeJutsu === 'shadowClone' && <ShadowClone videoElement={videoElement} />}
     </Canvas>
   );
 }
@@ -60,6 +53,9 @@ function VideoPlane({ videoElement }: { videoElement: HTMLVideoElement }) {
     texture.minFilter = THREE.LinearFilter;
     texture.magFilter = THREE.LinearFilter;
     texture.format = THREE.RGBAFormat;
+    // Prevent double-gamma: the renderer applies sRGB output encoding,
+    // so keep the video texture in linear space to avoid a washed-out / overly-bright feed.
+    texture.colorSpace = THREE.LinearSRGBColorSpace;
     textureRef.current = texture;
 
     // Apply to material
