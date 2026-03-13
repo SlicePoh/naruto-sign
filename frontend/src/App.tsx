@@ -9,6 +9,7 @@ import { useJutsuEngine } from './jutsuEngine/useJutsuEngine';
 import { ThreeScene } from './scene/ThreeScene';
 import { ShadowClone } from './effects/ShadowClone';
 import { useShadowCloneHold } from './effects/useShadowCloneHold';
+import { RasenganOverlay, ChakraReadyIndicator, useRasenganDetection } from './effects/rasengan';
 import { useAppStore } from './store/useAppStore';
 import './App.css';
 
@@ -25,6 +26,8 @@ function App() {
   const triggerJutsu = useAppStore((state) => state.triggerJutsu);
   const shadowCloneActive = useAppStore((state) => state.shadowCloneActive);
   const activateShadowClone = useAppStore((state) => state.activateShadowClone);
+  const activateRasengan = useAppStore((state) => state.activateRasengan);
+  const rasenganActive = useAppStore((state) => state.rasenganActive);
   
   // Debouncing: Track sign stability
   const signStabilityRef = useRef({ sign: 'unknown' as SignLabel, count: 0 });
@@ -37,6 +40,9 @@ function App() {
   // Shadow Clone: 2-second hold detection + 10-second duration
   useShadowCloneHold(currentSign);
 
+  // Rasengan: backend-driven temporal gesture detection
+  useRasenganDetection(hands);
+
   // Load the RF model once on mount
   useEffect(() => {
     loadModel().catch((err) => console.error('Failed to load RF model:', err));
@@ -45,6 +51,10 @@ function App() {
   // Classify hands locally — no API round-trip, runs synchronously (~1-2 ms)
   useEffect(() => {
     if (!isModelLoaded()) return;
+
+    // Don't reclassify while rasengan effect is playing —
+    // it would feed noise into the jutsu engine and overwrite the label.
+    if (rasenganActive) return;
 
     const hasHands = hands && hands.length > 0 && hands.some(h => h.length === 21);
 
@@ -93,7 +103,7 @@ function App() {
     }
 
     setConfidence(detectedConfidence);
-  }, [hands, setCurrentSign, setConfidence, currentSign]);
+  }, [hands, setCurrentSign, setConfidence, currentSign, rasenganActive]);
 
   return (
     <div className="app">
@@ -119,6 +129,9 @@ function App() {
         )}
 
         <HandOverlay hands={hands} />
+
+        {/* Rasengan effect overlay — renders on palm */}
+        <RasenganOverlay hands={hands} />
       </div>
 
       {/* Manual test controls (clickable) */}
@@ -132,6 +145,16 @@ function App() {
           }}
         >
           Test Shadow Clone
+        </button>
+        <button
+          type="button"
+          className="test-button test-button-rasengan"
+          onClick={() => {
+            activateRasengan();
+            triggerJutsu('rasengan');
+          }}
+        >
+          Test Rasengan
         </button>
       </div>
 
@@ -177,12 +200,16 @@ function App() {
               ⚡ {activeJutsu === 'shadowClone' ? 'SHADOW CLONE JUTSU' :
                   activeJutsu === 'fireball' ? 'FIRE STYLE: FIREBALL JUTSU' :
                   activeJutsu === 'chidori' ? 'CHIDORI' :
+                  activeJutsu === 'rasengan' ? 'RASENGAN' :
                   activeJutsu}! ⚡
             </div>
           )}
+
+          {/* Chakra formation indicator (pre-rasengan) */}
+          <ChakraReadyIndicator />
         </div>
 
-        <div className="instructions">
+        {/* <div className="instructions">
           <h3>Available Hand Signs:</h3>
           
           <div className="sign-guide">
@@ -212,7 +239,7 @@ function App() {
             </div>
           </div>
     
-        </div>
+        </div> */}
       </div>
     </div>
   );

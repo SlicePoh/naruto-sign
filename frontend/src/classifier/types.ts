@@ -23,7 +23,7 @@ export type SignLabel =
   | "dragon"
   | "unknown";
 
-export type JutsuName = "shadowClone" | "fireball" | "chidori" | null;
+export type JutsuName = "shadowClone" | "fireball" | "chidori" | "rasengan" | null;
 
 export interface Features {
   fingerExtensions: number[]; // 0-1 for each finger

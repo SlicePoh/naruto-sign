@@ -1,6 +1,13 @@
 import { create } from 'zustand';
 import type { SignLabel, JutsuName } from '../classifier/types';
 
+export type ChakraState = 'IDLE' | 'FORMING' | 'SPINNING' | 'CHAKRA_READY' | 'RASENGAN' | null;
+
+interface RasenganPalmPosition {
+  x: number;
+  y: number;
+}
+
 interface AppState {
   currentSign: SignLabel;
   signBuffer: SignLabel[];
@@ -11,6 +18,12 @@ interface AppState {
   shadowHoldStartTime: number | null;
   shadowCloneActive: boolean;
   shadowCloneEndTime: number | null;
+
+  // Rasengan state
+  chakraState: ChakraState;
+  rasenganActive: boolean;
+  rasenganEndTime: number | null;
+  rasenganPalmPosition: RasenganPalmPosition | null;
 
   setCurrentSign: (sign: SignLabel) => void;
   addToBuffer: (sign: SignLabel) => void;
@@ -24,6 +37,12 @@ interface AppState {
   setShadowHoldStart: (time: number | null) => void;
   activateShadowClone: () => void;
   deactivateShadowClone: () => void;
+
+  // Rasengan actions
+  setChakraState: (state: ChakraState) => void;
+  activateRasengan: () => void;
+  deactivateRasengan: () => void;
+  setRasenganPalmPosition: (pos: RasenganPalmPosition | null) => void;
 }
 
 /**
@@ -40,6 +59,12 @@ export const useAppStore = create<AppState>((set) => ({
   shadowHoldStartTime: null,
   shadowCloneActive: false,
   shadowCloneEndTime: null,
+
+  // Rasengan state defaults
+  chakraState: null,
+  rasenganActive: false,
+  rasenganEndTime: null,
+  rasenganPalmPosition: null,
 
   setConfidence: (confidence) =>
     set({ confidence }),
@@ -83,4 +108,27 @@ export const useAppStore = create<AppState>((set) => ({
       shadowCloneEndTime: null,
       shadowHoldStartTime: null,
     }),
+
+  // Rasengan actions
+  setChakraState: (state) =>
+    set({ chakraState: state }),
+
+  activateRasengan: () =>
+    set({
+      rasenganActive: true,
+      rasenganEndTime: Date.now() + 5_000,
+      chakraState: 'RASENGAN',
+    }),
+
+  deactivateRasengan: () =>
+    set({
+      rasenganActive: false,
+      rasenganEndTime: null,
+      rasenganPalmPosition: null,
+      chakraState: null,
+      activeJutsu: null,
+    }),
+
+  setRasenganPalmPosition: (pos) =>
+    set({ rasenganPalmPosition: pos }),
 }));

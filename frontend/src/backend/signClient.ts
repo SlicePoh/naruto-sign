@@ -5,6 +5,8 @@ export interface BackendPredictResponse {
   confidence: number;
   method: 'rule' | 'model';
   hands: number;
+  jutsu?: string | null;
+  chakra_state?: string | null;
 }
 
 export interface HealthResponse {
