@@ -39,3 +39,5 @@ backend/.ruff_cache/
 *.njsproj
 *.sln
 *.sw?
+
+.copilot-memory/*

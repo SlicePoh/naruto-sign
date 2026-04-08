@@ -3,7 +3,7 @@ import mediapipe as mp
 import time
 import csv
 import numpy as np
-import joblib  # type: ignore
+import joblib 
 from pathlib import Path
 from collections import deque
 from mediapipe.tasks import python
@@ -24,13 +24,11 @@ rasengan_detector = RasenganDetector()
 cap = cv2.VideoCapture(0)
 if not cap.isOpened():
     raise RuntimeError("Cannot open webcam")
-HAND_CONNECTIONS = [
-    (0,1),(1,2),(2,3),(3,4),
-    (0,5),(5,6),(6,7),(7,8),
-    (0,9),(9,10),(10,11),(11,12),
-    (0,13),(13,14),(14,15),(15,16),
-    (0,17),(17,18),(18,19),(19,20)
-]
+HAND_CONNECTIONS = [(0,1),(1,2),(2,3),(3,4), (0,5),(5,6),(6,7),(7,8), (0,9),(9,10),(10,11),(11,12),
+        (0,13),(13,14),(14,15),(15,16),(0,17),(17,18),(18,19),(19,20)]
+SIGN_COLORS = {"ram": (255, 140, 0), "tiger": (0, 215, 255), "horse": (255, 105, 180), "serpent": (50, 205, 50),
+        "dog": (255, 99, 71), "rasengan": (147, 20, 255), }
+
 def extract_features(hand_landmarks):
     coords = []
     for lm in hand_landmarks:
@@ -42,12 +40,7 @@ def extract_features(hand_landmarks):
     for point in coords:
         delta = (point - wrist) / hand_size
         features.extend(delta.tolist())
-    finger_triplets = [ (1,2,3),(2,3,4),
-        (5,6,7),(6,7,8),
-        (9,10,11),(10,11,12),
-        (13,14,15),(14,15,16),
-        (17,18,19),(18,19,20)
-    ]
+    finger_triplets = [ (1,2,3),(2,3,4), (5,6,7),(6,7,8), (9,10,11),(10,11,12), (13,14,15),(14,15,16), (17,18,19),(18,19,20) ]
     for a,b,c in finger_triplets:
         ba = coords[a] - coords[b]
         bc = coords[c] - coords[b]
@@ -77,9 +70,47 @@ def draw_hand(hand_landmarks, frame):
         y = int(lm.y * h)
         points.append((x, y))
         cv2.circle(frame, (x, y), 4, (0,255,0), -1)
-
     for start, end in HAND_CONNECTIONS:
         cv2.line(frame, points[start], points[end], (255,0,0), 2)
+
+def get_hand_sign_box(frame, hands, padding=18):
+    valid_hands = [hand for hand in hands if hand is not None]
+    if not valid_hands:
+        return None
+    h, w, _ = frame.shape
+    x_coords = []
+    y_coords = []
+    for hand_landmarks in valid_hands:
+        for landmark in hand_landmarks:
+            x_coords.append(int(landmark.x * w))
+            y_coords.append(int(landmark.y * h))
+    x_min = max(min(x_coords) - padding, 0)
+    y_min = max(min(y_coords) - padding, 0)
+    x_max = min(max(x_coords) + padding, w - 1)
+    y_max = min(max(y_coords) + padding, h - 1)
+    return x_min, y_min, x_max, y_max
+
+
+def draw_sign_box(frame, hands, sign_name):
+    if sign_name not in SIGN_COLORS:
+        return
+    box = get_hand_sign_box(frame, hands)
+    if box is None:
+        return
+    x_min, y_min, x_max, y_max = box
+    color = SIGN_COLORS[sign_name]
+    cv2.rectangle(frame, (x_min, y_min), (x_max, y_max), color, 2)
+    label = sign_name.upper()
+    (text_w, text_h), baseline = cv2.getTextSize(
+        label, cv2.FONT_HERSHEY_SIMPLEX, 0.6, 2
+    )
+    label_x = x_min
+    label_y = max(y_min - 12, text_h + baseline + 8)
+    bg_top = label_y - text_h - baseline - 6
+    bg_bottom = label_y + baseline + 4
+    bg_right = min(label_x + text_w + 12, frame.shape[1] - 1)
+    cv2.rectangle( frame, (label_x, bg_top), (bg_right, bg_bottom), color, -1, )
+    cv2.putText( frame, label, (label_x + 6, label_y), cv2.FONT_HERSHEY_SIMPLEX, 0.6, (255, 255, 255), 2, )
 
 def palm_open(hand):
     tips = [8,12,16,20]
@@ -153,6 +184,7 @@ while True:
         final_pred = max(set(pred_buffer), key=pred_buffer.count)
     else:
         final_pred = "unknown"
+    draw_sign_box(frame, [left_hand, right_hand], final_pred)
     cv2.putText( frame, f"Sign: {final_pred} ({confidence:.2f})", (20, 80), 
             cv2.FONT_HERSHEY_SIMPLEX, 1, (0,255,0), 2 )
 
