@@ -2,7 +2,7 @@ import { useEffect, useRef } from 'react';
 import { predictSignFromLandmarks } from '../../backend/signClient';
 import { useAppStore } from '../../store/useAppStore';
 import type { ChakraState } from '../../store/useAppStore';
-import type { HandLandmarks } from '../../classifier/types';
+import type { HandLandmarks, SignLabel } from '../../classifier/types';
 
 /**
  * Polling interval (ms) for sending hand data to the backend.
@@ -10,6 +10,17 @@ import type { HandLandmarks } from '../../classifier/types';
  * every single frame (to avoid flooding the backend).
  */
 const POLL_INTERVAL_MS = 200;
+
+/**
+ * Trained hand signs that should suppress rasengan detection.
+ * When the local classifier has confidently identified one of these,
+ * we skip polling so that the backend's wrist-proximity state machine
+ * doesn't accidentally advance (many jutsus bring hands close together).
+ */
+const BLOCKING_SIGNS: ReadonlySet<SignLabel> = new Set([
+  'tiger', 'ram', 'snake', 'dog', 'hare', 'horse', 'rat',
+  'serpent', 'shadow', 'bird', 'boar', 'ox', 'dragon',
+]);
 
 /**
  * useRasenganDetection — sends hand landmarks to the backend periodically
@@ -20,16 +31,21 @@ const POLL_INTERVAL_MS = 200;
  *  - CHAKRA_READY       → show "CHAKRA READY" indicator
  *  - jutsu === "rasengan" → activate the rasengan effect
  *
- * Only active when 2 hands are detected (rasengan requires both hands).
+ * Polling is skipped when:
+ *  - Rasengan animation is already playing
+ *  - A trained non-rasengan sign is actively detected (prevents false triggers)
  */
 export function useRasenganDetection(hands: HandLandmarks[]) {
   const setChakraState = useAppStore((s) => s.setChakraState);
   const activateRasengan = useAppStore((s) => s.activateRasengan);
   const triggerJutsu = useAppStore((s) => s.triggerJutsu);
   const rasenganActive = useAppStore((s) => s.rasenganActive);
+  const currentSign = useAppStore((s) => s.currentSign);
 
   const handsRef = useRef(hands);
   handsRef.current = hands;
+  const currentSignRef = useRef(currentSign);
+  currentSignRef.current = currentSign;
 
   const abortRef = useRef<AbortController | null>(null);
   const activeRef = useRef(false);
@@ -42,6 +58,13 @@ export function useRasenganDetection(hands: HandLandmarks[]) {
 
     const poll = async () => {
       if (!activeRef.current) return;
+
+      // Skip polling if a trained sign is currently detected
+      if (BLOCKING_SIGNS.has(currentSignRef.current)) {
+        setChakraState(null);
+        scheduleNext();
+        return;
+      }
 
       const currentHands = handsRef.current;
 
@@ -63,6 +86,13 @@ export function useRasenganDetection(hands: HandLandmarks[]) {
         );
 
         if (!activeRef.current) return;
+
+        // Double-check sign hasn't changed during the async request
+        if (BLOCKING_SIGNS.has(currentSignRef.current)) {
+          setChakraState(null);
+          scheduleNext();
+          return;
+        }
 
         // Map backend chakra_state to our store type
         const chakra = (response.chakra_state as ChakraState) ?? null;

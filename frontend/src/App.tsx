@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useCamera } from './camera/useCamera';
 import { useHandLandmarks } from './handTracking/useHandLandmarks';
 import { HandOverlay } from './handTracking/HandOverlay';
@@ -8,14 +8,18 @@ import { buildCombinedFeatures } from './classifier/modelFeatures';
 import { useJutsuEngine } from './jutsuEngine/useJutsuEngine';
 import { ThreeScene } from './scene/ThreeScene';
 import { ShadowClone } from './effects/ShadowClone';
+import { SmokeEffect } from './effects/SmokeEffect';
+import { FallingLeaves } from './effects/FallingLeaves';
 import { useShadowCloneHold } from './effects/useShadowCloneHold';
 import { RasenganOverlay, ChakraReadyIndicator, useRasenganDetection } from './effects/rasengan';
+import { useRotatingBackground } from './effects/useRotatingBackground';
 import { useAppStore } from './store/useAppStore';
 import './App.css';
 
 function App() {
   const { videoRef, error, isReady } = useCamera();
   const { hands } = useHandLandmarks(videoRef.current, isReady);
+  const bgUrl = useRotatingBackground();
   
   const currentSign = useAppStore((state) => state.currentSign);
   const signBuffer = useAppStore((state) => state.signBuffer);
@@ -28,11 +32,36 @@ function App() {
   const activateShadowClone = useAppStore((state) => state.activateShadowClone);
   const activateRasengan = useAppStore((state) => state.activateRasengan);
   const rasenganActive = useAppStore((state) => state.rasenganActive);
+  const score = useAppStore((state) => state.score);
+  const currentTrial = useAppStore((state) => state.currentTrial);
+  const completedTrials = useAppStore((state) => state.completedTrials);
+  const awardPoints = useAppStore((state) => state.awardPoints);
+  const advanceTrial = useAppStore((state) => state.advanceTrial);
+  const shadowHoldStartTime = useAppStore((state) => state.shadowHoldStartTime);
   
   // Debouncing: Track sign stability
   const signStabilityRef = useRef({ sign: 'unknown' as SignLabel, count: 0 });
   // 1-second cooldown after a sign is confirmed (prevents duplicate registrations)
   const cooldownUntilRef = useRef(0);
+  // Track whether the current trial was already scored
+  const lastScoredTrialRef = useRef(0);
+
+  // Shadow hold progress (0–1) for the loading indicator
+  const [shadowHoldProgress, setShadowHoldProgress] = useState(0);
+  useEffect(() => {
+    if (shadowHoldStartTime === null || shadowCloneActive) {
+      setShadowHoldProgress(0);
+      return;
+    }
+    let raf = 0;
+    const tick = () => {
+      const elapsed = Date.now() - shadowHoldStartTime;
+      setShadowHoldProgress(Math.min(elapsed / 2000, 1));
+      raf = requestAnimationFrame(tick);
+    };
+    raf = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(raf);
+  }, [shadowHoldStartTime, shadowCloneActive]);
   
   // Use jutsu engine to detect sequences
   useJutsuEngine(currentSign);
@@ -42,6 +71,21 @@ function App() {
 
   // Rasengan: backend-driven temporal gesture detection
   useRasenganDetection(hands);
+
+  // Award points when a trial jutsu is completed
+  useEffect(() => {
+    if (!activeJutsu) return;
+    if (activeJutsu === currentTrial.jutsuKey && lastScoredTrialRef.current !== completedTrials + 1) {
+      const JUTSU_POINTS: Record<string, number> = { rasengan: 50, fireball: 30, chidori: 30, shadowClone: 20 };
+      const pts = JUTSU_POINTS[activeJutsu] ?? 10;
+      awardPoints(pts);
+      lastScoredTrialRef.current = completedTrials + 1;
+      // Advance after a short delay so the player sees the success
+      const t = setTimeout(() => advanceTrial(), 2500);
+      return () => clearTimeout(t);
+    }
+    return undefined;
+  }, [activeJutsu, currentTrial, completedTrials, awardPoints, advanceTrial]);
 
   // Load the RF model once on mount
   useEffect(() => {
@@ -105,9 +149,16 @@ function App() {
     setConfidence(detectedConfidence);
   }, [hands, setCurrentSign, setConfidence, currentSign, rasenganActive]);
 
+  const jutsuLabels: Record<string, string> = {
+    shadowClone: 'SHADOW CLONE JUTSU',
+    fireball: 'FIRE STYLE — FIREBALL',
+    chidori: 'CHIDORI',
+    rasengan: 'RASENGAN',
+  };
+  const activeJutsuLabel = activeJutsu ? (jutsuLabels[activeJutsu] ?? activeJutsu) : '';
+
   return (
-    <div className="app">
-      {/* Hidden video element for camera feed */}
+    <div className="app" style={{ backgroundImage: `url('${bgUrl}')` }}>
       <video
         ref={videoRef}
         style={{ display: 'none' }}
@@ -116,11 +167,11 @@ function App() {
         playsInline
       />
 
-      {/* 3D Scene with video background and effects */}
+      <FallingLeaves />
+
       <div className="scene-container">
         <ThreeScene videoElement={videoRef.current} />
 
-        {/* Shadow Clone canvas overlay — renders segmented clones */}
         {videoRef.current && (
           <ShadowClone
             videoElement={videoRef.current}
@@ -128,13 +179,13 @@ function App() {
           />
         )}
 
+        <SmokeEffect active={shadowCloneActive} videoElement={videoRef.current} />
+
         <HandOverlay hands={hands} />
 
-        {/* Rasengan effect overlay — renders on palm */}
-        <RasenganOverlay hands={hands} />
+        <RasenganOverlay hands={hands} videoElement={videoRef.current} />
       </div>
 
-      {/* Manual test controls (clickable) */}
       <div className="test-controls">
         <button
           type="button"
@@ -158,11 +209,28 @@ function App() {
         </button>
       </div>
 
-      {/* UI Overlay */}
+      <div className="game-hud">
+        <div className="score-badge">
+          <span className="score-label">Score</span>
+          <span className="score-value">{score}</span>
+        </div>
+        <div className="trial-card">
+          <span className="trial-header">MISSION #{completedTrials + 1}</span>
+          <span className="trial-name">{currentTrial.name}</span>
+          <span className="trial-desc">{currentTrial.description}</span>
+        </div>
+      </div>
+
+      {/* HUD corner accents */}
+      <div className="hud-corner hud-corner--tl" />
+      <div className="hud-corner hud-corner--tr" />
+      <div className="hud-corner hud-corner--bl" />
+      <div className="hud-corner hud-corner--br" />
+
       <div className="overlay">
         <div className="header">
-          <h1>🍥 Naruto Hand Signs</h1>
-          <p className="subtitle">Hold Shadow sign for Shadow Clone Jutsu!</p>
+          <h1>SHINOBI TRACKER</h1>
+          <span className="subtitle">PERFORM THE TRIAL JUTSU TO EARN XP</span>
         </div>
 
         {error && (
@@ -174,7 +242,7 @@ function App() {
         <div className="info-panel-compact">
           <div className="info-row">
             <span className="label">Sign:</span>
-            <span className={`sign ${currentSign !== 'unknown' ? 'detected' : ''}`}>
+            <span className={`sign ${currentSign === 'unknown' ? '' : 'detected'}`}>
               {currentSign.toUpperCase()}
             </span>
           </div>
@@ -182,7 +250,7 @@ function App() {
           <div className="info-row">
             <span className="label">Sequence:</span>
             <span className="buffer">
-              {signBuffer.length > 0 
+              {signBuffer.length > 0
                 ? signBuffer.map(s => s.toUpperCase()).join(' → ')
                 : 'None'}
             </span>
@@ -197,49 +265,22 @@ function App() {
 
           {activeJutsu && (
             <div className="jutsu-notification">
-              ⚡ {activeJutsu === 'shadowClone' ? 'SHADOW CLONE JUTSU' :
-                  activeJutsu === 'fireball' ? 'FIRE STYLE: FIREBALL JUTSU' :
-                  activeJutsu === 'chidori' ? 'CHIDORI' :
-                  activeJutsu === 'rasengan' ? 'RASENGAN' :
-                  activeJutsu}! ⚡
+              {activeJutsuLabel}
             </div>
           )}
 
-          {/* Chakra formation indicator (pre-rasengan) */}
+          {/* Shadow clone hold progress bar */}
+          {shadowHoldProgress > 0 && !shadowCloneActive && (
+            <div className="hold-progress">
+              <div className="hold-progress-label">Charging Shadow Clone…</div>
+              <div className="hold-progress-track">
+                <div className="hold-progress-fill" style={{ width: `${shadowHoldProgress * 100}%` }} />
+              </div>
+            </div>
+          )}
+
           <ChakraReadyIndicator />
         </div>
-
-        {/* <div className="instructions">
-          <h3>Available Hand Signs:</h3>
-          
-          <div className="sign-guide">
-            <div className="sign-info">
-              <strong>🐅 Tiger:</strong> Interlocked fingers, index + middle up
-            </div>
-            <div className="sign-info">
-              <strong>🐏 Ram:</strong> Hands clasped, index + middle extended
-            </div>
-            <div className="sign-info">
-              <strong>🐍 Serpent:</strong> Palms flat, fingers interlocked
-            </div>
-            <div className="sign-info">
-              <strong>🐶 Dog:</strong> One fist over the other, palm down
-            </div>
-            <div className="sign-info">
-              <strong>🐴 Horse:</strong> Index fingers up, other fingers interlocked
-            </div>
-            <div className="sign-info">
-              <strong>🐇 Hare:</strong> Pinky up, index pointed
-            </div>
-            <div className="sign-info">
-              <strong>🐀 Rat:</strong> Left hand wraps right index + middle
-            </div>
-            <div className="sign-info">
-              <strong>👥 Shadow:</strong> Crossed fingers, clone seal
-            </div>
-          </div>
-    
-        </div> */}
       </div>
     </div>
   );

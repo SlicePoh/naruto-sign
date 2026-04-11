@@ -77,7 +77,7 @@ function VideoPlane({ videoElement }: { videoElement: HTMLVideoElement }) {
 
   // Calculate proper aspect ratio
   const aspectRatio = videoElement.videoWidth / videoElement.videoHeight || 16 / 9;
-  const width = 4;
+  const width = 6;
   const height = width / aspectRatio;
 
   return (

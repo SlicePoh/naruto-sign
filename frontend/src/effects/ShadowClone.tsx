@@ -37,8 +37,8 @@ function getVideoRect(
   const frustumH = 2 * cameraZ * Math.tan(fovRad / 2);
   const frustumW = frustumH * containerAspect;
 
-  // Plane world-space size
-  const planeW = 4;
+  // Plane world-space size (must match ThreeScene VideoPlane width)
+  const planeW = 6;
   const planeH = planeW / videoAspect;
 
   // Fraction of the frustum occupied by the plane

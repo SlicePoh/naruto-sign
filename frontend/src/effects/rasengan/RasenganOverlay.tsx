@@ -3,17 +3,18 @@ import { useRasengan } from './useRasengan';
 import type { HandLandmarks } from '../../classifier/types';
 
 interface RasenganOverlayProps {
-  hands: HandLandmarks[];
+  readonly hands: HandLandmarks[];
+  readonly videoElement?: HTMLVideoElement | null;
 }
 
 /**
  * Canvas overlay that renders the Rasengan visual effect on the user's palm.
  * Mount this inside the scene-container alongside the other overlays.
  */
-export function RasenganOverlay({ hands }: RasenganOverlayProps) {
+export function RasenganOverlay({ hands, videoElement }: RasenganOverlayProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
-  useRasengan(canvasRef, hands);
+  useRasengan(canvasRef, hands, videoElement ?? null);
 
   return (
     <canvas

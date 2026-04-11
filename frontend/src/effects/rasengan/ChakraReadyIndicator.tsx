@@ -11,12 +11,12 @@ export function ChakraReadyIndicator() {
   // Show during FORMING / SPINNING / CHAKRA_READY, but not when rasengan fires
   if (!chakraState || chakraState === 'IDLE' || rasenganActive) return null;
 
-  const label =
-    chakraState === 'CHAKRA_READY'
-      ? '🌀 CHAKRA READY — Open your palm!'
-      : chakraState === 'SPINNING'
-        ? '🌀 Spinning…'
-        : '🌀 Forming chakra…';
+  let label = 'FORMING CHAKRA';
+  if (chakraState === 'CHAKRA_READY') {
+    label = 'CHAKRA READY \u2014 OPEN PALM';
+  } else if (chakraState === 'SPINNING') {
+    label = 'SPINNING';
+  }
 
   const isReady = chakraState === 'CHAKRA_READY';
 

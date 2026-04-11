@@ -8,6 +8,25 @@ interface RasenganPalmPosition {
   y: number;
 }
 
+/** Jutsu trial — what the player should perform next. */
+export interface JutsuTrial {
+  name: string;
+  jutsuKey: Exclude<JutsuName, null>;
+  description: string;
+}
+
+const TRIAL_POOL: JutsuTrial[] = [
+  { name: 'Shadow Clone Jutsu', jutsuKey: 'shadowClone', description: 'Hold the Shadow sign for 2 seconds' },
+  { name: 'Rasengan', jutsuKey: 'rasengan', description: 'Form chakra with both hands, then open your palm' },
+  { name: 'Fire Style: Fireball', jutsuKey: 'fireball', description: 'Serpent → Ram → Horse → Tiger' },
+  { name: 'Chidori', jutsuKey: 'chidori', description: 'Rat → Tiger → Dog' },
+];
+
+function pickTrial(exclude?: Exclude<JutsuName, null>): JutsuTrial {
+  const pool = exclude ? TRIAL_POOL.filter((t) => t.jutsuKey !== exclude) : TRIAL_POOL;
+  return pool[Math.floor(Math.random() * pool.length)];
+}
+
 interface AppState {
   currentSign: SignLabel;
   signBuffer: SignLabel[];
@@ -24,6 +43,11 @@ interface AppState {
   rasenganActive: boolean;
   rasenganEndTime: number | null;
   rasenganPalmPosition: RasenganPalmPosition | null;
+
+  // Game state
+  score: number;
+  currentTrial: JutsuTrial;
+  completedTrials: number;
 
   setCurrentSign: (sign: SignLabel) => void;
   addToBuffer: (sign: SignLabel) => void;
@@ -43,6 +67,10 @@ interface AppState {
   activateRasengan: () => void;
   deactivateRasengan: () => void;
   setRasenganPalmPosition: (pos: RasenganPalmPosition | null) => void;
+
+  // Game actions
+  awardPoints: (pts: number) => void;
+  advanceTrial: () => void;
 }
 
 /**
@@ -65,6 +93,11 @@ export const useAppStore = create<AppState>((set) => ({
   rasenganActive: false,
   rasenganEndTime: null,
   rasenganPalmPosition: null,
+
+  // Game state defaults
+  score: 0,
+  currentTrial: pickTrial(),
+  completedTrials: 0,
 
   setConfidence: (confidence) =>
     set({ confidence }),
@@ -131,4 +164,14 @@ export const useAppStore = create<AppState>((set) => ({
 
   setRasenganPalmPosition: (pos) =>
     set({ rasenganPalmPosition: pos }),
+
+  // Game actions
+  awardPoints: (pts) =>
+    set((state) => ({ score: state.score + pts })),
+
+  advanceTrial: () =>
+    set((state) => ({
+      completedTrials: state.completedTrials + 1,
+      currentTrial: pickTrial(state.currentTrial.jutsuKey),
+    })),
 }));
