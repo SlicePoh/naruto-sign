@@ -23,6 +23,9 @@ export function GameNav() {
       <NavLink to="/jutsu" className={({ isActive }) => `nav-link ${isActive ? 'active' : ''}`}>
         Jutsu
       </NavLink>
+      <NavLink to="/academy" className={({ isActive }) => `nav-link ${isActive ? 'active' : ''}`}>
+        Academy
+      </NavLink>
       <NavLink to="/missions" className={({ isActive }) => `nav-link ${isActive ? 'active' : ''}`}>
         Missions
       </NavLink>

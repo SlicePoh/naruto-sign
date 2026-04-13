@@ -18,7 +18,7 @@ const POLL_INTERVAL_MS = 200;
  * doesn't accidentally advance (many jutsus bring hands close together).
  */
 const BLOCKING_SIGNS: ReadonlySet<SignLabel> = new Set([
-  'tiger', 'ram', 'snake', 'dog', 'hare', 'horse', 'rat',
+  'tiger', 'ram', 'dog', 'hare', 'horse', 'rat',
   'serpent', 'shadow', 'bird', 'boar', 'ox', 'dragon',
 ]);
 

@@ -15,7 +15,7 @@ export type NinjaRank =
   | 'genin'
   | 'chunin'
   | 'jonin'
-  | 'anbu'
+  | 'sannin'
   | 'kage';
 
 export const RANK_ORDER: NinjaRank[] = [
@@ -23,7 +23,7 @@ export const RANK_ORDER: NinjaRank[] = [
   'genin',
   'chunin',
   'jonin',
-  'anbu',
+  'sannin',
   'kage',
 ];
 
@@ -32,7 +32,7 @@ export const RANK_LABELS: Record<NinjaRank, string> = {
   genin: 'Genin',
   chunin: 'Chūnin',
   jonin: 'Jōnin',
-  anbu: 'ANBU',
+  sannin: 'Sannin',
   kage: 'Kage',
 };
 
@@ -195,7 +195,7 @@ export const JUTSU_CATALOG: JutsuDef[] = [
     name: 'Clone Technique',
     description: 'Create basic illusory clones.',
     difficulty: 'basic',
-    requiredSigns: ['ram', 'snake', 'tiger'],
+    requiredSigns: ['ram', 'serpent', 'tiger'],
     requiredRank: 'academy',
     requiredMastery: {},
     xpReward: 10,
@@ -356,7 +356,7 @@ export const PROMOTION_EXAMS: PromotionExam[] = [
     tasks: [
       { description: 'Perform Clone Technique', jutsuId: 'clone' },
       { description: 'Perform Transformation Jutsu', jutsuId: 'transformation' },
-      { description: 'Complete hand sign chain: Ram → Snake → Tiger', signSequence: ['ram', 'snake', 'tiger'], requiredAccuracy: 90 },
+      { description: 'Complete hand sign chain: Ram → Serpent → Tiger', signSequence: ['ram', 'serpent', 'tiger'], requiredAccuracy: 90 },
     ],
     cooldownHours: 24,
   },
@@ -368,7 +368,7 @@ export const PROMOTION_EXAMS: PromotionExam[] = [
     requiredJutsuMastery: { shadowClone: 60 },
     tasks: [
       { description: 'Execute Shadow Clone Jutsu', jutsuId: 'shadowClone' },
-      { description: 'Perform 3 different jutsu in sequence', signSequence: ['ram', 'snake', 'tiger', 'serpent', 'ram', 'horse', 'tiger'] },
+      { description: 'Perform 3 different jutsu in sequence', signSequence: ['ram', 'serpent', 'tiger', 'serpent', 'ram', 'horse', 'tiger'] },
       { description: 'Maintain 85% accuracy across all tasks', requiredAccuracy: 85 },
     ],
     cooldownHours: 24,
@@ -389,8 +389,8 @@ export const PROMOTION_EXAMS: PromotionExam[] = [
   },
   {
     fromRank: 'jonin',
-    toRank: 'anbu',
-    title: 'ANBU Selection',
+    toRank: 'sannin',
+    title: 'Sannin Trial',
     requiredXP: 2500,
     requiredJutsuMastery: {},
     tasks: [
@@ -400,7 +400,7 @@ export const PROMOTION_EXAMS: PromotionExam[] = [
     cooldownHours: 72,
   },
   {
-    fromRank: 'anbu',
+    fromRank: 'sannin',
     toRank: 'kage',
     title: 'Kage Summit Challenge',
     requiredXP: 5000,

@@ -1,9 +1,9 @@
-/* ═══════════════════════════════════════════════════════════════
+/* 
    SHINOBI TRACKER — Modern Action-Game HUD Theme
    Inspired by Assassin's Creed / cyberpunk ninja aesthetics
-   ═══════════════════════════════════════════════════════════════ */
+    */
 
-/* ── CSS Variables ──────────────────────────────────────────────── */
+/* ── CSS Variables─── */
 :root {
   --hud-primary: #00e5ff;
   --hud-primary-dim: rgba(0, 229, 255, 0.15);
@@ -37,7 +37,7 @@ body {
   overflow: hidden;
 }
 
-/* ── App container ──────────────────────────────────────────────── */
+/* ── App container─── */
 .app {
   width: 100vw;
   height: 100vh;
@@ -101,7 +101,7 @@ body {
   pointer-events: none;
 }
 
-/* ── Hand overlay ───────────────────────────────────────────────── */
+/* ── Hand overlay──── */
 .hand-overlay {
   position: absolute;
   top: 0;
@@ -112,7 +112,7 @@ body {
   pointer-events: none;
 }
 
-/* ── Rasengan overlay ───────────────────────────────────────────── */
+/* ── Rasengan overlay */
 .rasengan-overlay {
   position: absolute;
   top: 0;
@@ -123,9 +123,7 @@ body {
   pointer-events: none;
 }
 
-/* ═══════════════════════════════════════════════════════════════
-   HUD OVERLAY — full-screen UI layer
-   ═══════════════════════════════════════════════════════════════ */
+/* HUD OVERLAY — full-screen UI layer */
 .overlay {
   position: absolute;
   top: 0;
@@ -139,7 +137,7 @@ body {
   flex-direction: column;
 }
 
-/* ── Top bar (title) ────────────────────────────────────────────── */
+/* ── Top bar (title)─ */
 .header {
   display: flex;
   align-items: center;
@@ -196,7 +194,7 @@ body {
   text-transform: uppercase;
 }
 
-/* ── Error banner ───────────────────────────────────────────────── */
+/* ── Error banner──── */
 .error {
   background: rgba(255, 45, 85, 0.15);
   border: 1px solid rgba(255, 45, 85, 0.4);
@@ -209,9 +207,9 @@ body {
   clip-path: polygon(12px 0, 100% 0, calc(100% - 12px) 100%, 0 100%);
 }
 
-/* ═══════════════════════════════════════════════════════════════
+/* 
    TACTICAL PANEL — right-side data readout
-   ═══════════════════════════════════════════════════════════════ */
+    */
 .info-panel-compact {
   position: absolute;
   top: 72px;
@@ -305,9 +303,9 @@ body {
   color: var(--hud-success);
 }
 
-/* ═══════════════════════════════════════════════════════════════
+/* 
    JUTSU NOTIFICATION — full-width cinematic banner
-   ═══════════════════════════════════════════════════════════════ */
+    */
 .jutsu-notification {
   background: linear-gradient(
     90deg,
@@ -353,9 +351,9 @@ body {
   }
 }
 
-/* ═══════════════════════════════════════════════════════════════
+/* 
    GAME HUD — bottom-center score + trial
-   ═══════════════════════════════════════════════════════════════ */
+    */
 .game-hud {
   position: absolute;
   bottom: 20px;
@@ -480,59 +478,65 @@ body {
   letter-spacing: 0.5px;
 }
 
-/* ═══════════════════════════════════════════════════════════════
-   TEST CONTROLS — top-left dev buttons
-   ═══════════════════════════════════════════════════════════════ */
-.test-controls {
-  position: absolute;
-  top: 72px;
-  left: 20px;
-  z-index: 15;
-  pointer-events: auto;
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
+/* 
+   DRILL — success flash + back link
+    */
+.drill-success {
+  border-color: var(--hud-success) !important;
+  box-shadow: 0 0 20px rgba(0, 255, 136, 0.25);
 }
 
-.test-button {
+.drill-success::before {
+  background: var(--hud-success) !important;
+  box-shadow: 0 0 12px rgba(0, 255, 136, 0.5) !important;
+}
+
+.drill-success .trial-name {
+  color: var(--hud-success);
+  animation: scoreFlash 0.4s ease-out;
+}
+
+.drill-back-link {
   font-family: var(--font-body);
+  font-size: 0.7rem;
   font-weight: 600;
-  font-size: 0.78rem;
-  letter-spacing: 1px;
+  letter-spacing: 2px;
   text-transform: uppercase;
-  background: var(--hud-bg);
-  color: var(--hud-accent);
-  border: 1px solid rgba(255, 107, 0, 0.3);
-  padding: 8px 16px;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  clip-path: polygon(6px 0, 100% 0, calc(100% - 6px) 100%, 0 100%);
-}
-
-.test-button:hover {
-  background: rgba(255, 107, 0, 0.12);
-  border-color: var(--hud-accent);
-  box-shadow: 0 0 16px rgba(255, 107, 0, 0.2);
-}
-
-.test-button:active {
-  transform: translateY(1px);
-}
-
-.test-button-rasengan {
   color: var(--hud-primary);
-  border-color: rgba(0, 229, 255, 0.3);
+  text-decoration: none;
+  margin-top: 8px;
+  padding: 4px 0;
+  cursor: pointer;
+  transition: color 0.2s ease;
+  pointer-events: auto;
 }
 
-.test-button-rasengan:hover {
-  background: rgba(0, 229, 255, 0.12);
-  border-color: var(--hud-primary);
-  box-shadow: 0 0 16px rgba(0, 229, 255, 0.2);
+.drill-back-link:hover {
+  color: #fff;
+  text-shadow: 0 0 8px var(--hud-primary-glow);
 }
 
-/* ═══════════════════════════════════════════════════════════════
+.back-to-training {
+  position: absolute;
+  top: 8px;
+  left: 0;
+  font-family: var(--font-body);
+  font-size: 0.7rem;
+  font-weight: 600;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  text-decoration: none;
+  color: var(--hud-text-dim);
+  transition: color 0.2s ease;
+}
+
+.back-to-training:hover {
+  color: var(--hud-primary);
+}
+
+/* 
    CHAKRA INDICATOR — rasengan charge state
-   ═══════════════════════════════════════════════════════════════ */
+    */
 .chakra-indicator {
   padding: 10px 18px;
   text-align: center;
@@ -578,9 +582,9 @@ body {
   }
 }
 
-/* ═══════════════════════════════════════════════════════════════
+/* 
    SHADOW CLONE HOLD PROGRESS
-   ═══════════════════════════════════════════════════════════════ */
+    */
 .hold-progress {
   position: absolute;
   bottom: 100px;
@@ -620,9 +624,9 @@ body {
   transition: width 50ms linear;
 }
 
-/* ═══════════════════════════════════════════════════════════════
+/* 
    CORNER ACCENTS — decorative HUD frame
-   ═══════════════════════════════════════════════════════════════ */
+    */
 .hud-corner {
   position: absolute;
   width: 40px;
@@ -659,9 +663,9 @@ body {
   border-right: 2px solid var(--hud-primary);
 }
 
-/* ═══════════════════════════════════════════════════════════════
+/* 
    SIGN GUIDE / INSTRUCTIONS
-   ═══════════════════════════════════════════════════════════════ */
+    */
 .instructions {
   background: var(--hud-bg);
   padding: 12px 18px;
@@ -706,9 +710,9 @@ body {
   letter-spacing: 1px;
 }
 
-/* ═══════════════════════════════════════════════════════════════
+/* 
    INFO PANEL (full-width variant, if needed)
-   ═══════════════════════════════════════════════════════════════ */
+    */
 .info-panel {
   background: var(--hud-bg);
   padding: 20px;
@@ -729,9 +733,9 @@ body {
   border-bottom: none;
 }
 
-/* ═══════════════════════════════════════════════════════════════
+/* 
    RESPONSIVE
-   ═══════════════════════════════════════════════════════════════ */
+    */
 @media (max-width: 768px) {
   .header h1 {
     font-size: 1rem;

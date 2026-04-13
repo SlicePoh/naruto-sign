@@ -81,7 +81,7 @@ export function classifySign(features: Features): SignLabel {
   const isUniform = fingerUniformity < 0.3;
   
   if (allFingersModerate && thumbModerate && isUniform) {
-    return 'snake';
+    return 'serpent';
   }
 
   // Bird/Tori: All fingers clearly extended

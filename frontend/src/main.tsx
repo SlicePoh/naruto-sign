@@ -9,6 +9,7 @@ import {
   DashboardPage,
   TrainingPage,
   JutsuTreePage,
+  AcademyGuidePage,
   ExamPage,
   MissionsPage,
   ClanHallPage,
@@ -43,6 +44,10 @@ function AppRouter() {
       <Route
         path="/jutsu"
         element={hasProfile ? <JutsuTreePage /> : <Navigate to="/" replace />}
+      />
+      <Route
+        path="/academy"
+        element={hasProfile ? <AcademyGuidePage /> : <Navigate to="/" replace />}
       />
       <Route
         path="/exam"

@@ -8,13 +8,11 @@ export const RASENGAN_DURATION_MS = 5000;
 const RASENGAN_VIDEO = '/effects/rasengan-alpha.webm';
 const RASENGAN_VIDEO_FALLBACK = '/effects/rasengan.mp4';
 const RASENGAN_AUDIO = '/effects/rasengan.mp4';
-
 export interface RasenganPalmTarget {
   x: number;
   y: number;
   palmGapPx?: number;
 }
-
 interface Particle {
   angle: number;
   radius: number;
@@ -23,7 +21,6 @@ interface Particle {
 }
 
 type RasenganMode = 'idle' | 'charging' | 'active';
-
 function clamp(value: number, min: number, max: number) {
   return Math.min(max, Math.max(min, value));
 }
@@ -34,7 +31,6 @@ export class RasenganEffect {
   private readonly particles: Particle[] = [];
   private readonly visual: HTMLVideoElement;
   private readonly audio: HTMLAudioElement;
-
   constructor() {
     this.visual = document.createElement('video');
     this.visual.src = RASENGAN_VIDEO;
@@ -42,16 +38,13 @@ export class RasenganEffect {
     this.visual.loop = false;
     this.visual.muted = true;
     this.visual.playsInline = true;
-
     this.visual.addEventListener('error', () => {
       if (this.visual.src.endsWith(RASENGAN_VIDEO_FALLBACK)) return;
       this.visual.src = RASENGAN_VIDEO_FALLBACK;
       this.visual.load();
     });
-
     this.audio = new Audio(RASENGAN_AUDIO);
     this.audio.preload = 'auto';
-
     for (let i = 0; i < 40; i++) {
       this.particles.push({
         angle: Math.random() * Math.PI * 2,
@@ -61,28 +54,22 @@ export class RasenganEffect {
       });
     }
   }
-
   beginCharge() {
     if (this.mode === 'charging') return;
     if (this.mode === 'idle') {
       this.resetMedia(0);
     }
-
     this.mode = 'charging';
     this.startTime = performance.now();
     this.syncMedia(CHARGE_PLAYBACK_RATE, false);
   }
-
   activate() {
     if (this.mode === 'active') return;
-
     this.mode = 'active';
     this.startTime = performance.now();
-
     if (this.visual.readyState >= HTMLMediaElement.HAVE_METADATA) {
       this.visual.currentTime = Math.max(this.visual.currentTime, CHARGE_WINDOW_S);
     }
-
     try {
       this.audio.currentTime = Math.max(this.audio.currentTime, CHARGE_WINDOW_S);
     } catch {
@@ -90,42 +77,34 @@ export class RasenganEffect {
     }
     this.syncMedia(ACTIVE_PLAYBACK_RATE, false);
   }
-
   stop() {
     this.mode = 'idle';
     this.visual.pause();
     this.audio.pause();
     this.resetMedia(0);
   }
-
   freezeCharge() {
     if (this.mode !== 'charging') return;
     this.visual.pause();
     this.audio.pause();
     this.resetMedia(CHARGE_WINDOW_S);
   }
-
   get active() {
     return this.mode === 'active';
   }
-
   get visible() {
     return this.mode !== 'idle';
   }
-
   get charging() {
     return this.mode === 'charging';
   }
-
   get finished() {
     return this.mode === 'active' && performance.now() - this.startTime > RASENGAN_DURATION_MS;
   }
-
   get chargeProgress() {
     const mediaTime = Math.min(this.visual.currentTime || 0, CHARGE_WINDOW_S);
     return clamp(mediaTime / CHARGE_WINDOW_S, 0, 1);
   }
-
   draw(ctx: CanvasRenderingContext2D, palm: RasenganPalmTarget) {
     if (!this.visible) return;
 
@@ -213,7 +192,6 @@ export class RasenganEffect {
     ctx.drawImage(this.visual, palm.x - drawSize / 2, palm.y - drawSize / 2, drawSize, drawSize);
     ctx.restore();
   }
-
   private drawEnergyCore(
     ctx: CanvasRenderingContext2D,
     palm: RasenganPalmTarget,
@@ -233,12 +211,10 @@ export class RasenganEffect {
     core.addColorStop(0.28, `rgba(165, 235, 255, ${0.7 + progress * 0.2})`);
     core.addColorStop(0.72, `rgba(70, 135, 255, ${0.42 + progress * 0.24})`);
     core.addColorStop(1, 'rgba(0, 0, 0, 0)');
-
     ctx.fillStyle = core;
     ctx.beginPath();
     ctx.arc(palm.x, palm.y, radius, 0, Math.PI * 2);
     ctx.fill();
-
     ctx.lineWidth = 2.4;
     for (let i = 0; i < 3; i++) {
       const rotation = swirlTime * (0.9 + i * 0.28);
@@ -254,7 +230,6 @@ export class RasenganEffect {
       }
       ctx.stroke();
     }
-
     for (const particle of this.particles) {
       particle.angle += particle.speed * 0.025;
       const rr = radius * particle.radius;

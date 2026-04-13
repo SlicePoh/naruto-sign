@@ -1,6 +1,6 @@
 import { Link } from 'react-router-dom';
 import { useGameStore } from '../useGameStore';
-import { RANK_LABELS, CLANS, NINJA_TYPES, CHAKRA_NATURES, PROMOTION_EXAMS, RANK_ORDER, JUTSU_CATALOG } from '../types';
+import { RANK_LABELS, CLANS, NINJA_TYPES, CHAKRA_NATURES, PROMOTION_EXAMS, RANK_ORDER, JUTSU_CATALOG, MISSION_POOL } from '../types';
 import { GameNav } from '../GameNav';
 
 export function DashboardPage() {
@@ -109,6 +109,9 @@ export function DashboardPage() {
             <Link to="/jutsu" className="g-btn g-btn--accent">
               SKILL TREE
             </Link>
+            <Link to="/academy" className="g-btn">
+              ACADEMY GUIDE
+            </Link>
             <Link to="/missions" className="g-btn">
               MISSIONS
             </Link>
@@ -140,13 +143,23 @@ export function DashboardPage() {
             </div>
           </div>
         )}
+
+        <div className="g-card g-card--accent">
+          <div className="g-card-title g-card-title--accent">ACADEMY BRIEFING</div>
+          <p className="select-card-desc" style={{ marginBottom: 14 }}>
+            New to the shinobi world? Review chakra basics, jutsu categories, technique ranks, and bloodline powers
+            before heading into training or promotion exams.
+          </p>
+          <Link to="/academy" className="g-btn g-btn--accent">
+            OPEN FIELD MANUAL
+          </Link>
+        </div>
       </div>
     </div>
   );
 }
 
 // Quick lookup
-import { MISSION_POOL } from '../types';
 const MISSION_POOL_LOOKUP: Record<string, typeof MISSION_POOL[number]> = Object.fromEntries(
   MISSION_POOL.map((m) => [m.id, m]),
 );

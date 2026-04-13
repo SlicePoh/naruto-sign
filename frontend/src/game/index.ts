@@ -2,6 +2,7 @@ export { OnboardingPage } from './pages/OnboardingPage';
 export { DashboardPage } from './pages/DashboardPage';
 export { TrainingPage } from './pages/TrainingPage';
 export { JutsuTreePage } from './pages/JutsuTreePage';
+export { AcademyGuidePage } from './pages/AcademyGuidePage';
 export { ExamPage } from './pages/ExamPage';
 export { MissionsPage } from './pages/MissionsPage';
 export { ClanHallPage } from './pages/ClanHallPage';

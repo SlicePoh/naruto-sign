@@ -9,12 +9,11 @@ export type HandLandmarks = Landmark[];
 export type SignLabel =
   | "tiger"
   | "ram"
-  | "snake"
+  | "serpent"
   | "dog"
   | "hare"
   | "horse"
   | "rat"
-  | "serpent"
   | "shadow"
   | "neutral"
   | "bird"
@@ -23,7 +22,19 @@ export type SignLabel =
   | "dragon"
   | "unknown";
 
-export type JutsuName = "shadowClone" | "fireball" | "chidori" | "rasengan" | null;
+export type JutsuName =
+  | "clone"
+  | "transformation"
+  | "substitution"
+  | "shadowClone"
+  | "fireball"
+  | "chidori"
+  | "rasengan"
+  | "waterDragon"
+  | "earthWall"
+  | "phoenixFlower"
+  | "windBlade"
+  | null;
 
 export interface Features {
   fingerExtensions: number[]; // 0-1 for each finger

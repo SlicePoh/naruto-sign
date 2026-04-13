@@ -107,7 +107,7 @@ export const useAppStore = create<AppState>((set) => ({
 
   addToBuffer: (sign) =>
     set((state) => ({
-      signBuffer: [...state.signBuffer.slice(-2), sign], // Keep last 3 signs
+      signBuffer: [...state.signBuffer.slice(-5), sign], // Keep last 6 signs
     })),
 
   setActiveJutsu: (jutsu) =>

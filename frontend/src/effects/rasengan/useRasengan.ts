@@ -21,7 +21,7 @@ const CHARGING_CHAKRA_STATES: ReadonlySet<ChakraState> = new Set([
  * accidentally hijacked by the wrist-proximity state machine.
  */
 const BLOCKING_SIGNS: ReadonlySet<SignLabel> = new Set([
-  'tiger', 'ram', 'snake', 'dog', 'hare', 'horse', 'rat',
+  'tiger', 'ram', 'dog', 'hare', 'horse', 'rat',
   'serpent', 'shadow', 'bird', 'boar', 'ox', 'dragon',
 ]);
 
