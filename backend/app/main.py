@@ -26,8 +26,12 @@ if not cap.isOpened():
     raise RuntimeError("Cannot open webcam")
 HAND_CONNECTIONS = [(0,1),(1,2),(2,3),(3,4), (0,5),(5,6),(6,7),(7,8), (0,9),(9,10),(10,11),(11,12),
         (0,13),(13,14),(14,15),(15,16),(0,17),(17,18),(18,19),(19,20)]
-SIGN_COLORS = {"ram": (255, 140, 0), "tiger": (0, 215, 255), "horse": (255, 105, 180), "serpent": (50, 205, 50),
-        "dog": (255, 99, 71), "rasengan": (147, 20, 255), }
+SIGN_COLORS = {
+    "ram": (255, 140, 0), "tiger": (0, 215, 255), "horse": (255, 105, 180), "serpent": (50, 205, 50),
+    "dog": (255, 99, 71), "rasengan": (147, 20, 255), "hare": (255, 200, 100),
+    "rat": (200, 200, 0), "shadow": (180, 0, 255), "bird": (100, 255, 255), "boar": (255, 150, 150),
+    "ox": (150, 150, 255), "dragon": (0, 165, 255),
+}
 
 def extract_features(hand_landmarks):
     coords = []
@@ -126,6 +130,23 @@ file = open("dataset.csv", mode="a", newline="")
 writer = csv.writer(file)
 pred_buffer = deque(maxlen=15)
 CONF_THRESHOLD = 0.82
+
+# Key-to-label mapping for recording
+KEY_LABELS = {
+    ord('0'): 'neutral',
+    ord('1'): 'ram',
+    ord('2'): 'tiger',
+    ord('3'): 'horse',
+    ord('4'): 'serpent',
+    ord('5'): 'dog',
+    ord('6'): 'hare',
+    ord('7'): 'rat',
+    ord('8'): 'shadow',
+    ord('9'): 'bird',
+    ord('a'): 'boar',
+    ord('b'): 'ox',
+    ord('c'): 'dragon',
+}
 start_time = time.time()
 while True:
     ret, frame = cap.read()
@@ -190,22 +211,18 @@ while True:
 
     cv2.putText( frame, f"Recording: {record} for {label}", (20, 40), 
             cv2.FONT_HERSHEY_SIMPLEX, 1, (0,255,255), 2 )
+
+    # On-screen key legend
+    legend_y = frame.shape[0] - 20
+    legend = "0:neutral 1:ram 2:tiger 3:horse 4:serpent 5:dog 6:hare 7:rat 8:shadow 9:bird a:boar b:ox c:dragon"
+    cv2.putText(frame, legend, (10, legend_y), cv2.FONT_HERSHEY_SIMPLEX, 0.4, (180,180,180), 1)
+
     cv2.imshow("Hand Tracking - Video", frame)
     key = cv2.waitKey(1) & 0xFF
     if key == ord('r'):
         record = not record
-    if key == ord('1'):
-        label = "ram"
-    if key == ord('2'):
-        label = "tiger"
-    if key == ord('3'):
-        label = "horse"
-    if key == ord('4'):
-        label = "serpent"
-    if key == ord('5'):
-        label = "dog"
-    if key == ord('0'):
-        label = "neutral"
+    if key in KEY_LABELS:
+        label = KEY_LABELS[key]
     if key == ord('q'):
         break
 cap.release()
