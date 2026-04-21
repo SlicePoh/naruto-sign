@@ -30,7 +30,7 @@ SIGN_COLORS = {
     "ram": (255, 140, 0), "tiger": (0, 215, 255), "horse": (255, 105, 180), "serpent": (50, 205, 50),
     "dog": (255, 99, 71), "rasengan": (147, 20, 255), "hare": (255, 200, 100),
     "rat": (200, 200, 0), "shadow": (180, 0, 255), "bird": (100, 255, 255), "boar": (255, 150, 150),
-    "ox": (150, 150, 255), "dragon": (0, 165, 255),
+    "ox": (150, 150, 255), "dragon": (0, 165, 255), "monkey": (0, 200, 150),
 }
 
 def extract_features(hand_landmarks):
@@ -146,6 +146,7 @@ KEY_LABELS = {
     ord('a'): 'boar',
     ord('b'): 'ox',
     ord('c'): 'dragon',
+    ord('d'): 'monkey',
 }
 start_time = time.time()
 while True:
@@ -214,7 +215,7 @@ while True:
 
     # On-screen key legend
     legend_y = frame.shape[0] - 20
-    legend = "0:neutral 1:ram 2:tiger 3:horse 4:serpent 5:dog 6:hare 7:rat 8:shadow 9:bird a:boar b:ox c:dragon"
+    legend = "0:neutral 1:ram 2:tiger 3:horse 4:serpent 5:dog 6:hare 7:rat 8:shadow 9:bird a:boar b:ox c:dragon d:monkey"
     cv2.putText(frame, legend, (10, legend_y), cv2.FONT_HERSHEY_SIMPLEX, 0.4, (180,180,180), 1)
 
     cv2.imshow("Hand Tracking - Video", frame)

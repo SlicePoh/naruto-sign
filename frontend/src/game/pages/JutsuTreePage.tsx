@@ -63,7 +63,7 @@ export function JutsuTreePage() {
                 return (
                   <div
                     key={def.id}
-                    className={`jutsu-card ${!isUnlocked ? 'locked' : ''}`}
+                    className={`jutsu-card ${isUnlocked ? '' : 'locked'}`}
                   >
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
                       <div className="jutsu-name">{def.name}</div>

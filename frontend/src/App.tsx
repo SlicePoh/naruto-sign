@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import { useCamera } from './camera/useCamera';
 import { useHandLandmarks } from './handTracking/useHandLandmarks';
 import { HandOverlay } from './handTracking/HandOverlay';
-import type { SignLabel } from './classifier/types';
+import type { SignLabel, HandLandmarks } from './classifier/types';
 import { loadModel, predictLocal, isModelLoaded } from './classifier/localClassifier';
 import { buildCombinedFeatures } from './classifier/modelFeatures';
 import { useJutsuEngine } from './jutsuEngine/useJutsuEngine';
@@ -87,6 +87,110 @@ function generateDrills(unlockedJutsuIds: JutsuId[]): Drill[] {
   return drills.sort(() => Math.random() - 0.5);
 }
 
+/* ── Drill card sub-component (eliminates nested ternaries) ── */
+
+interface DrillCardProps {
+  readonly drillStatus: 'ready' | 'active' | 'success' | 'complete';
+  readonly currentDrill: Drill | null;
+  readonly drillIndex: number;
+  readonly drillCount: number;
+  readonly sessionXP: number;
+}
+
+function DrillCard({ drillStatus, currentDrill, drillIndex, drillCount, sessionXP }: DrillCardProps) {
+  if (drillStatus === 'complete') {
+    return (
+      <div className="trial-card">
+        <span className="trial-header">SESSION COMPLETE</span>
+        <span className="trial-name">+{sessionXP} XP EARNED</span>
+        <span className="trial-desc">{drillCount} drills completed</span>
+        <Link to="/training" className="drill-back-link">
+          CONTINUE TRAINING
+        </Link>
+      </div>
+    );
+  }
+
+  if (!currentDrill) return <div className="trial-card" />;
+
+  const drillTypeLabel = currentDrill.type === 'jutsu' ? ' — JUTSU' : ' — SIGN';
+  const nameText = drillStatus === 'success'
+    ? `+${currentDrill.xpReward} XP ✓`
+    : currentDrill.name;
+
+  let descText: string;
+  if (drillStatus === 'success') {
+    descText = 'Well done!';
+  } else if (drillStatus === 'ready') {
+    descText = 'Get ready…';
+  } else {
+    descText = currentDrill.description;
+  }
+
+  return (
+    <div className={`trial-card${drillStatus === 'success' ? ' drill-success' : ''}`}>
+      <span className="trial-header">
+        DRILL {drillIndex + 1} / {drillCount}
+        {drillTypeLabel}
+      </span>
+      <span className="trial-name">{nameText}</span>
+      <span className="trial-desc">{descText}</span>
+    </div>
+  );
+}
+
+/* ── Sign classification logic (extracted to reduce App complexity) ── */
+
+function classifyHands(
+  hands: HandLandmarks[] | null,
+  currentSign: SignLabel,
+  rasenganActive: boolean,
+  signStabilityRef: React.MutableRefObject<{ sign: SignLabel; count: number }>,
+  cooldownUntilRef: React.MutableRefObject<number>,
+  setCurrentSign: (s: SignLabel) => void,
+  setConfidence: (c: number) => void,
+) {
+  if (!isModelLoaded() || rasenganActive) return;
+
+  const hasHands = hands?.some(h => h.length === 21);
+
+  if (!hasHands) {
+    setCurrentSign('unknown');
+    setConfidence(0);
+    signStabilityRef.current = { sign: 'unknown', count: 0 };
+    return;
+  }
+
+  const features = buildCombinedFeatures(hands!);
+  const { sign: rawSign, confidence: conf } = predictLocal(features);
+
+  const detectedSign: SignLabel = (rawSign === 'neutral' || rawSign === 'unknown') ? 'unknown' : rawSign;
+
+  const now = Date.now();
+  if (now < cooldownUntilRef.current && detectedSign !== 'unknown') {
+    setConfidence(conf);
+    return;
+  }
+
+  const REQUIRED = conf > 0.85 ? 2 : 3;
+
+  if (detectedSign === signStabilityRef.current.sign) {
+    signStabilityRef.current.count++;
+  } else {
+    signStabilityRef.current = { sign: detectedSign, count: 1 };
+  }
+
+  if (signStabilityRef.current.count >= REQUIRED && currentSign !== detectedSign) {
+    setCurrentSign(detectedSign);
+    if (detectedSign !== 'unknown') {
+      console.log('✅ Confirmed sign:', detectedSign.toUpperCase());
+      cooldownUntilRef.current = Date.now() + 1000;
+    }
+  }
+
+  setConfidence(conf);
+}
+
 function App() {
   const { videoRef, error, isReady } = useCamera();
   const { hands } = useHandLandmarks(videoRef.current, isReady);
@@ -98,10 +202,7 @@ function App() {
   const confidence = useAppStore((state) => state.confidence);
   const setCurrentSign = useAppStore((state) => state.setCurrentSign);
   const setConfidence = useAppStore((state) => state.setConfidence);
-  const triggerJutsu = useAppStore((state) => state.triggerJutsu);
   const shadowCloneActive = useAppStore((state) => state.shadowCloneActive);
-  const activateShadowClone = useAppStore((state) => state.activateShadowClone);
-  const activateRasengan = useAppStore((state) => state.activateRasengan);
   const rasenganActive = useAppStore((state) => state.rasenganActive);
   const shadowHoldStartTime = useAppStore((state) => state.shadowHoldStartTime);
 
@@ -182,7 +283,7 @@ function App() {
 
     // Credit game store
     if (currentDrill.type === 'jutsu' && currentDrill.jutsuId) {
-      recordJutsuSuccess(currentDrill.jutsuId as JutsuId);
+      recordJutsuSuccess(currentDrill.jutsuId);
     } else {
       addXP(xp);
     }
@@ -211,59 +312,11 @@ function App() {
 
   // Classify hands locally — no API round-trip, runs synchronously (~1-2 ms)
   useEffect(() => {
-    if (!isModelLoaded()) return;
-
-    // Don't reclassify while rasengan effect is playing —
-    // it would feed noise into the jutsu engine and overwrite the label.
-    if (rasenganActive) return;
-
-    const hasHands = hands && hands.length > 0 && hands.some(h => h.length === 21);
-
-    if (!hasHands) {
-      setCurrentSign('unknown');
-      setConfidence(0);
-      signStabilityRef.current = { sign: 'unknown', count: 0 };
-      return;
-    }
-
-    // Build the same 161-dim feature vector the Python backend uses
-    const features = buildCombinedFeatures(hands);
-    const { sign: rawSign, confidence: conf } = predictLocal(features);
-
-    // Treat "neutral" from the model as no-sign — this prevents edge-case
-    // hand positions (relaxed hands, transitions) from being misclassified.
-    const detectedSign: SignLabel = (rawSign === 'neutral' || rawSign === 'unknown') ? 'unknown' : rawSign;
-    const detectedConfidence = conf;
-
-    // During cooldown period, only accept 'unknown' (to reset state),
-    // but ignore any new sign detection to avoid duplicate registrations.
-    const now = Date.now();
-    if (now < cooldownUntilRef.current && detectedSign !== 'unknown') {
-      setConfidence(detectedConfidence);
-      return;
-    }
-
-    // Stability debounce: require N consecutive identical predictions
-    const REQUIRED = detectedConfidence > 0.85 ? 2 : 3;
-
-    if (detectedSign === signStabilityRef.current.sign) {
-      signStabilityRef.current.count++;
-    } else {
-      signStabilityRef.current = { sign: detectedSign, count: 1 };
-    }
-
-    if (signStabilityRef.current.count >= REQUIRED) {
-      if (currentSign !== detectedSign) {
-        setCurrentSign(detectedSign);
-        if (detectedSign !== 'unknown') {
-          console.log('✅ Confirmed sign:', detectedSign.toUpperCase());
-          // Start 1-second cooldown so the same sign isn't re-registered
-          cooldownUntilRef.current = Date.now() + 1000;
-        }
-      }
-    }
-
-    setConfidence(detectedConfidence);
+    classifyHands(
+      hands, currentSign, rasenganActive,
+      signStabilityRef, cooldownUntilRef,
+      setCurrentSign, setConfidence,
+    );
   }, [hands, setCurrentSign, setConfidence, currentSign, rasenganActive]);
 
   const jutsuLabels: Record<string, string> = {
@@ -315,35 +368,13 @@ function App() {
           <span className="score-label">SESSION XP</span>
           <span className="score-value">+{sessionXP}</span>
         </div>
-        <div className={`trial-card${drillStatus === 'success' ? ' drill-success' : ''}`}>
-          {drillStatus === 'complete' ? (
-            <>
-              <span className="trial-header">SESSION COMPLETE</span>
-              <span className="trial-name">+{sessionXP} XP EARNED</span>
-              <span className="trial-desc">{drills.length} drills completed</span>
-              <Link to="/training" className="drill-back-link">
-                CONTINUE TRAINING
-              </Link>
-            </>
-          ) : currentDrill ? (
-            <>
-              <span className="trial-header">
-                DRILL {drillIndex + 1} / {drills.length}
-                {currentDrill.type === 'jutsu' ? ' — JUTSU' : ' — SIGN'}
-              </span>
-              <span className="trial-name">
-                {drillStatus === 'success' ? `+${currentDrill.xpReward} XP ✓` : currentDrill.name}
-              </span>
-              <span className="trial-desc">
-                {drillStatus === 'success'
-                  ? 'Well done!'
-                  : drillStatus === 'ready'
-                  ? 'Get ready…'
-                  : currentDrill.description}
-              </span>
-            </>
-          ) : null}
-        </div>
+        <DrillCard
+          drillStatus={drillStatus}
+          currentDrill={currentDrill}
+          drillIndex={drillIndex}
+          drillCount={drills.length}
+          sessionXP={sessionXP}
+        />
       </div>
 
       {/* HUD corner accents */}

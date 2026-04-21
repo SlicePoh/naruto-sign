@@ -6,7 +6,7 @@
 
 export type NinjaType = 'ninjutsu' | 'genjutsu' | 'taijutsu';
 
-export type ClanId = 'uzumaki' | 'uchiha' | 'hyuga' | 'nara' | 'rogue';
+export type ClanId = 'uzumaki' | 'uchiha' | 'hyuga' | 'nara' | 'aburame' | 'inuzuka' | 'akimichi' | 'hatake' | 'yamanaka' | 'senju' | 'rogue';
 
 export type ChakraNature = 'fire' | 'wind' | 'water' | 'earth' | 'lightning';
 
@@ -52,7 +52,7 @@ export const CLANS: ClanDef[] = [
   {
     id: 'uzumaki',
     name: 'Uzumaki',
-    icon: '🌀',
+    icon: '/clans/uzumaki clan.png',
     description: 'Known for massive chakra reserves and sealing jutsu.',
     passive: '+20% Chakra Control growth',
     affinityNature: 'wind',
@@ -61,7 +61,7 @@ export const CLANS: ClanDef[] = [
   {
     id: 'uchiha',
     name: 'Uchiha',
-    icon: '🔥',
+    icon: '/clans/Uchiha Logo-bg-removed.png',
     description: 'Masters of fire-style ninjutsu and the Sharingan.',
     passive: '+15% Precision, Fire affinity',
     affinityNature: 'fire',
@@ -70,7 +70,7 @@ export const CLANS: ClanDef[] = [
   {
     id: 'hyuga',
     name: 'Hyūga',
-    icon: '👁️',
+    icon: '/clans/Yamanaka Clan.png',
     description: 'Gentle Fist users with unmatched focus and accuracy.',
     passive: '+20% Precision',
     affinityNature: 'lightning',
@@ -79,7 +79,7 @@ export const CLANS: ClanDef[] = [
   {
     id: 'nara',
     name: 'Nara',
-    icon: '🦌',
+    icon: '/clans/Clan Nara.png',
     description: 'Brilliant strategists who control shadows.',
     passive: '+15% Mastery gain speed',
     affinityNature: 'earth',
@@ -88,11 +88,65 @@ export const CLANS: ClanDef[] = [
   {
     id: 'rogue',
     name: 'No Clan',
-    icon: '⚔️',
+    icon: '/clans/Hatake Clan.png',
     description: 'Walk your own path. Balanced growth across all stats.',
     passive: '+5% to all stats',
     affinityNature: 'water',
     statBonus: { chakraControl: 4, speed: 4, precision: 4, mastery: 4 },
+  },
+  {
+    id: 'aburame',
+    name: 'Aburame',
+    icon: '/clans/Clan aburame.png',
+    description: 'Insect users who drain chakra and track targets.',
+    passive: '+15% Mastery, insect tracking',
+    affinityNature: 'earth',
+    statBonus: { mastery: 8, precision: 5 },
+  },
+  {
+    id: 'inuzuka',
+    name: 'Inuzuka',
+    icon: '/clans/Inuzuka Clan.png',
+    description: 'Beast companions with feral speed and taijutsu prowess.',
+    passive: '+20% Speed growth',
+    affinityNature: 'earth',
+    statBonus: { speed: 12 },
+  },
+  {
+    id: 'akimichi',
+    name: 'Akimichi',
+    icon: '/clans/Akimichi clan.png',
+    description: 'Body expansion masters with immense physical power.',
+    passive: '+20% Chakra Control, bulk',
+    affinityNature: 'earth',
+    statBonus: { chakraControl: 10, precision: 3 },
+  },
+  {
+    id: 'hatake',
+    name: 'Hatake',
+    icon: '/clans/Hatake Clan.png',
+    description: 'Prodigies known for copying techniques and lightning mastery.',
+    passive: '+15% Mastery, Lightning affinity',
+    affinityNature: 'lightning',
+    statBonus: { mastery: 8, speed: 5 },
+  },
+  {
+    id: 'yamanaka',
+    name: 'Yamanaka',
+    icon: '/clans/Yamanaka Clan.png',
+    description: 'Mind-transfer specialists with powerful genjutsu support.',
+    passive: '+15% Precision, genjutsu focus',
+    affinityNature: 'water',
+    statBonus: { precision: 10, mastery: 3 },
+  },
+  {
+    id: 'senju',
+    name: 'Senju',
+    icon: '/eyes/Senju Clan.png',
+    description: 'The legendary clan of the First Hokage. Balanced and resilient.',
+    passive: '+10% all stats, earth affinity',
+    affinityNature: 'earth',
+    statBonus: { chakraControl: 6, speed: 6, precision: 6, mastery: 6 },
   },
 ];
 
@@ -482,5 +536,6 @@ export interface PlayerProfile {
   lastExamAttempt: number | null;
   lastExamResult: 'pass' | 'fail' | null;
   totalTrainingSessions: number;
+  tutorialSeen: boolean;
   createdAt: number;
 }

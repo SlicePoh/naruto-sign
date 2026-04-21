@@ -37,8 +37,8 @@ function rollDailyMissions(clan: ClanId, rank: NinjaRank): MissionProgress[] {
     return true;
   });
   // Pick up to 4 random ones
-  const shuffled = eligible.sort(() => Math.random() - 0.5).slice(0, 4);
-  return shuffled.map((m) => ({
+  const shuffled = [...eligible].sort(() => Math.random() - 0.5);
+  return shuffled.slice(0, 4).map((m) => ({
     missionId: m.id,
     progress: 0,
     completed: false,
@@ -64,6 +64,7 @@ interface GameState {
   promote: (toRank: NinjaRank) => void;
   recordExamAttempt: (result: 'pass' | 'fail') => void;
   incrementTrainingSessions: () => void;
+  setTutorialSeen: () => void;
 
   // Missions
   refreshMissions: () => void;
@@ -93,7 +94,7 @@ export const useGameStore = create<GameState>()(
         const baseStats = { chakraControl: 10, speed: 10, precision: 10, mastery: 10 };
         const stats = { ...baseStats };
         for (const [k, v] of Object.entries(clanDef.statBonus)) {
-          stats[k as keyof typeof stats] += v as number;
+          stats[k as keyof typeof stats] += v;
         }
 
         const jutsuProgress = initialJutsuProgress();
@@ -118,6 +119,7 @@ export const useGameStore = create<GameState>()(
           lastExamAttempt: null,
           lastExamResult: null,
           totalTrainingSessions: 0,
+          tutorialSeen: false,
           createdAt: Date.now(),
         };
         set({ profile, onboardingStep: 4 });
@@ -182,6 +184,12 @@ export const useGameStore = create<GameState>()(
         set((s) => {
           if (!s.profile) return s;
           return { profile: { ...s.profile, totalTrainingSessions: s.profile.totalTrainingSessions + 1 } };
+        }),
+
+      setTutorialSeen: () =>
+        set((s) => {
+          if (!s.profile) return s;
+          return { profile: { ...s.profile, tutorialSeen: true } };
         }),
 
       /* ── Missions ────────────────────────────────────────── */

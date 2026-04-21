@@ -2,6 +2,12 @@ import { GameNav } from '../GameNav';
 import { useGameStore } from '../useGameStore';
 import { MISSION_POOL } from '../types';
 
+function getMissionBadge(type: string): string {
+  if (type === 'challenge') return 'advanced';
+  if (type === 'rank') return 'intermediate';
+  return 'basic';
+}
+
 export function MissionsPage() {
   const profile = useGameStore((s) => s.profile);
   const refreshMissions = useGameStore((s) => s.refreshMissions);
@@ -48,7 +54,7 @@ export function MissionsPage() {
         {Object.entries(grouped).map(([type, missions]) => (
           <div key={type} style={{ marginBottom: 24 }}>
             <div style={{ marginBottom: 12 }}>
-              <span className={`g-badge g-badge--${type === 'challenge' ? 'advanced' : type === 'rank' ? 'intermediate' : 'basic'}`}>
+              <span className={`g-badge g-badge--${getMissionBadge(type)}`}>
                 {type.toUpperCase()} MISSIONS
               </span>
             </div>

@@ -74,15 +74,16 @@ export function OnboardingPage() {
           <p className="onboard-subtitle">Select your ninja specialization</p>
           <div className="onboard-grid">
             {NINJA_TYPES.map((nt) => (
-              <div
+              <button
                 key={nt.id}
+                type="button"
                 className={`select-card ${ninjaType === nt.id ? 'selected' : ''}`}
                 onClick={() => setNinjaType(nt.id)}
               >
                 <div className="select-card-icon">{nt.icon}</div>
                 <div className="select-card-name">{nt.name}</div>
                 <div className="select-card-desc">{nt.description}</div>
-              </div>
+              </button>
             ))}
           </div>
         </>
@@ -95,16 +96,17 @@ export function OnboardingPage() {
           <p className="onboard-subtitle">Your clan shapes your strengths and jutsu path</p>
           <div className="onboard-grid">
             {CLANS.map((c) => (
-              <div
+              <button
                 key={c.id}
+                type="button"
                 className={`select-card ${clan === c.id ? 'selected' : ''}`}
                 onClick={() => setClan(c.id)}
               >
-                <div className="select-card-icon">{c.icon}</div>
+                <div className="select-card-icon"><img src={c.icon} alt={c.name} className="clan-icon-img" /></div>
                 <div className="select-card-name">{c.name}</div>
                 <div className="select-card-desc">{c.description}</div>
                 <div className="select-card-passive">{c.passive}</div>
-              </div>
+              </button>
             ))}
           </div>
         </>
@@ -117,15 +119,16 @@ export function OnboardingPage() {
           <p className="onboard-subtitle">Your elemental affinity unlocks nature-based jutsu</p>
           <div className="onboard-grid">
             {CHAKRA_NATURES.map((cn) => (
-              <div
+              <button
                 key={cn.id}
+                type="button"
                 className={`select-card ${nature === cn.id ? 'selected' : ''}`}
                 onClick={() => setNature(cn.id)}
               >
                 <div className="select-card-icon">{cn.icon}</div>
                 <div className="select-card-name">{cn.name}</div>
                 <div className="select-card-desc">{cn.description}</div>
-              </div>
+              </button>
             ))}
           </div>
         </>

@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { GameNav } from '../GameNav';
 import { useGameStore } from '../useGameStore';
-import { RANK_LABELS, PROMOTION_EXAMS, RANK_ORDER } from '../types';
+import { RANK_LABELS, PROMOTION_EXAMS } from '../types';
 
 export function ExamPage() {
   const profile = useGameStore((s) => s.profile);

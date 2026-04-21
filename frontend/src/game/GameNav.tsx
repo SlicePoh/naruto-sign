@@ -35,8 +35,22 @@ export function GameNav() {
       <NavLink to="/exam" className={({ isActive }) => `nav-link ${isActive ? 'active' : ''}`}>
         Exam
       </NavLink>
+      <NavLink to="/battle-setup" className={({ isActive }) => `nav-link ${isActive ? 'active' : ''}`}>
+        Battle
+        <span className="coming-soon-nav-tag">SOON</span>
+      </NavLink>
+      {/* Future features — hidden for MVP
+      <NavLink to="/battle-guide" className={({ isActive }) => `nav-link ${isActive ? 'active' : ''}`}>
+        Guide
+      </NavLink>
+      <NavLink to="/online-lobby" className={({ isActive }) => `nav-link ${isActive ? 'active' : ''}`}>
+        Online
+      </NavLink>
+      <NavLink to="/clans" className={({ isActive }) => `nav-link ${isActive ? 'active' : ''}`}>
+        Clans
+      </NavLink> */}
 
-      <span className="nav-rank">{clan?.icon} {RANK_LABELS[profile.rank]}</span>
+      <span className="nav-rank">{clan && <img src={clan.icon} alt={clan.name} className="clan-icon-img-sm" />} {RANK_LABELS[profile.rank]}</span>
       <span className="nav-xp">{profile.xp} XP</span>
     </nav>
   );

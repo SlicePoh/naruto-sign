@@ -23,7 +23,7 @@ export function ClanHallPage() {
 
       {/* Clan banner */}
       <div className="clan-banner">
-        <div className="clan-icon-large">{clan.icon}</div>
+        <div className="clan-icon-large"><img src={clan.icon} alt={clan.name} className="clan-icon-img-lg" /></div>
         <div className="clan-name-large">{clan.name} CLAN</div>
         <div className="clan-desc-large">{clan.description}</div>
       </div>
@@ -86,7 +86,7 @@ export function ClanHallPage() {
               return (
                 <div
                   key={def.id}
-                  className={`jutsu-card ${!isUnlocked ? 'locked' : ''}`}
+                  className={`jutsu-card ${isUnlocked ? '' : 'locked'}`}
                 >
                   <div className="jutsu-name">{def.name}</div>
                   <div className="jutsu-desc">{def.description}</div>
@@ -132,6 +132,12 @@ export function ClanHallPage() {
             {clan.id === 'uchiha' && 'Descendants of Indra Ōtsutsuki, the Uchiha possess the legendary Sharingan. Their natural affinity for fire-style ninjutsu and exceptional visual prowess make them feared across all nations.'}
             {clan.id === 'hyuga' && 'Bearers of the Byakugan, the Hyūga clan sees all. Their Gentle Fist taijutsu style targets the chakra pathway system directly, making their precision unmatched in close combat.'}
             {clan.id === 'nara' && 'The Nara clan are master strategists who manipulate shadows. Though they appear lazy, their intellect and shadow techniques make them invaluable in team-based combat and tactical operations.'}
+            {clan.id === 'aburame' && 'The Aburame clan forms symbiotic bonds with insects at birth, housing kikaichū beetles within their bodies. These bugs feed on chakra, making the Aburame deadly trackers and silent assassins who can drain an enemy\'s chakra reserves without ever throwing a punch.'}
+            {clan.id === 'inuzuka' && 'Fierce and loyal, the Inuzuka clan fights alongside their ninken — ninja dogs who are partners for life. Their beast-mimicry techniques and heightened senses make them unrivaled trackers and ferocious close-range fighters.'}
+            {clan.id === 'akimichi' && 'The Akimichi clan channels chakra into raw physical power through their signature Expansion Jutsu. Kind-hearted yet devastating in battle, they can multiply their size and strength to become unstoppable forces on the battlefield.'}
+            {clan.id === 'hatake' && 'The Hatake clan produced some of the most gifted prodigies in shinobi history. Known for their exceptional adaptability and mastery of diverse jutsu, the White Fang\'s legacy lives on through those who value versatility and ingenuity above all.'}
+            {clan.id === 'yamanaka' && 'Masters of the mind, the Yamanaka clan specializes in consciousness transfer and telepathic techniques. Their Mind Body Switch and sensory abilities make them indispensable for intelligence gathering and coordinated team operations.'}
+            {clan.id === 'senju' && 'Descendants of Ashura Ōtsutsuki and founders of the Hidden Leaf Village, the Senju are legendary for their unmatched life force and mastery of all shinobi arts. Their Wood Release and overwhelming chakra have shaped the course of ninja history.'}
             {clan.id === 'rogue' && 'Walking your own path means freedom — no clan ties, no expectations. Rogue ninja must rely on their own adaptability and balanced growth to survive.'}
           </p>
         </div>

@@ -13,15 +13,23 @@ import {
   ExamPage,
   MissionsPage,
   ClanHallPage,
+  BattleComingSoonPage,
+  OnlineComingSoonPage,
+  ClansComingSoonPage,
+  TutorialOverlay,
   useGameStore,
 } from './game'
 
 function AppRouter() {
   const profile = useGameStore((s) => s.profile);
+  const setTutorialSeen = useGameStore((s) => s.setTutorialSeen);
   const hasProfile = profile !== null;
+  const showTutorial = hasProfile && !profile.tutorialSeen;
 
   return (
-    <Routes>
+    <>
+      {showTutorial && <TutorialOverlay onComplete={setTutorialSeen} />}
+      <Routes>
       {/* Onboarding — shown when no profile exists */}
       <Route
         path="/"
@@ -61,6 +69,26 @@ function AppRouter() {
         path="/clan"
         element={hasProfile ? <ClanHallPage /> : <Navigate to="/" replace />}
       />
+      <Route
+        path="/battle-setup"
+        element={hasProfile ? <BattleComingSoonPage /> : <Navigate to="/" replace />}
+      />
+      <Route
+        path="/battle"
+        element={hasProfile ? <BattleComingSoonPage /> : <Navigate to="/" replace />}
+      />
+      <Route
+        path="/battle-guide"
+        element={hasProfile ? <BattleComingSoonPage /> : <Navigate to="/" replace />}
+      />
+      <Route
+        path="/online-lobby"
+        element={hasProfile ? <OnlineComingSoonPage /> : <Navigate to="/" replace />}
+      />
+      <Route
+        path="/clans"
+        element={hasProfile ? <ClansComingSoonPage /> : <Navigate to="/" replace />}
+      />
 
       {/* Live camera training session (original App) */}
       <Route path="/play" element={<App />} />
@@ -68,6 +96,7 @@ function AppRouter() {
       {/* Catch-all */}
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
+    </>
   );
 }
 

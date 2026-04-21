@@ -33,7 +33,7 @@ export function DashboardPage() {
         {/* Identity card */}
         <div className="g-card">
           <div className="dash-identity">
-            <div className="dash-avatar">{clan.icon}</div>
+            <div className="dash-avatar"><img src={clan.icon} alt={clan.name} className="clan-icon-img" /></div>
             <div>
               <div className="dash-name">{profile.name}</div>
               <div className="dash-rank-line">{RANK_LABELS[profile.rank]}</div>
