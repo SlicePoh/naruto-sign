@@ -16,6 +16,7 @@ import {
   BattleComingSoonPage,
   OnlineComingSoonPage,
   ClansComingSoonPage,
+  FreestylePage,
   TutorialOverlay,
   useGameStore,
 } from './game'
@@ -92,6 +93,9 @@ function AppRouter() {
 
       {/* Live camera training session (original App) */}
       <Route path="/play" element={<App />} />
+
+      {/* Freestyle dev sandbox — no profile required */}
+      <Route path="/freestyle" element={<FreestylePage />} />
 
       {/* Catch-all */}
       <Route path="*" element={<Navigate to="/" replace />} />

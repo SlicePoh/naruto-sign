@@ -19,7 +19,7 @@ const POLL_INTERVAL_MS = 200;
  */
 const BLOCKING_SIGNS: ReadonlySet<SignLabel> = new Set([
   'tiger', 'ram', 'dog', 'hare', 'horse', 'rat',
-  'serpent', 'shadow', 'bird', 'boar', 'ox', 'dragon',
+  'serpent', 'shadow', 'bird', 'boar', 'ox', 'dragon', 'monkey',
 ]);
 
 /**

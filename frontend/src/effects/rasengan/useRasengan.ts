@@ -22,7 +22,7 @@ const CHARGING_CHAKRA_STATES: ReadonlySet<ChakraState> = new Set([
  */
 const BLOCKING_SIGNS: ReadonlySet<SignLabel> = new Set([
   'tiger', 'ram', 'dog', 'hare', 'horse', 'rat',
-  'serpent', 'shadow', 'bird', 'boar', 'ox', 'dragon',
+  'serpent', 'shadow', 'bird', 'boar', 'ox', 'dragon', 'monkey',
 ]);
 
 interface PalmTarget {

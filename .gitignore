@@ -31,6 +31,9 @@ backend/.ruff_cache/
 backend/dataset.csv
 backend/hand_sign_model.pkl
 
+
+frontend/public/hand_sign_model.json
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json

@@ -13,6 +13,7 @@ import { SmokeEffect } from './effects/SmokeEffect';
 import { FallingLeaves } from './effects/FallingLeaves';
 import { useShadowCloneHold } from './effects/useShadowCloneHold';
 import { RasenganOverlay, ChakraReadyIndicator, useRasenganDetection } from './effects/rasengan';
+import { ChidoriOverlay, ChidoriReadyIndicator, useChidoriDetection } from './effects/chidori';
 import { useRotatingBackground } from './effects/useRotatingBackground';
 import { useAppStore } from './store/useAppStore';
 import { useGameStore } from './game/useGameStore';
@@ -35,7 +36,7 @@ interface Drill {
 
 const TRAINABLE_SIGNS: SignLabel[] = [
   'tiger', 'ram', 'dog', 'hare', 'horse',
-  'rat', 'serpent', 'shadow', 'bird', 'boar', 'ox', 'dragon',
+  'rat', 'serpent', 'shadow', 'bird', 'boar', 'ox', 'dragon', 'monkey',
 ];
 
 const SIGN_NAMES: Record<string, string> = {
@@ -43,6 +44,7 @@ const SIGN_NAMES: Record<string, string> = {
   dog: 'Dog (戌)', hare: 'Hare (卯)', horse: 'Horse (午)',
   rat: 'Rat (子)', shadow: 'Shadow Seal (影)',
   bird: 'Bird (酉)', boar: 'Boar (亥)', ox: 'Ox (丑)', dragon: 'Dragon (辰)',
+  monkey: 'Monkey (申)',
 };
 
 const DETECTABLE_JUTSU = new Set<JutsuId>([
@@ -141,16 +143,19 @@ function DrillCard({ drillStatus, currentDrill, drillIndex, drillCount, sessionX
 
 /* ── Sign classification logic (extracted to reduce App complexity) ── */
 
-function classifyHands(
-  hands: HandLandmarks[] | null,
-  currentSign: SignLabel,
-  rasenganActive: boolean,
-  signStabilityRef: React.MutableRefObject<{ sign: SignLabel; count: number }>,
-  cooldownUntilRef: React.MutableRefObject<number>,
-  setCurrentSign: (s: SignLabel) => void,
-  setConfidence: (c: number) => void,
-) {
-  if (!isModelLoaded() || rasenganActive) return;
+interface ClassifyOpts {
+  hands: HandLandmarks[] | null;
+  currentSign: SignLabel;
+  suppressed: boolean;
+  signStabilityRef: React.MutableRefObject<{ sign: SignLabel; count: number }>;
+  cooldownUntilRef: React.MutableRefObject<number>;
+  setCurrentSign: (s: SignLabel) => void;
+  setConfidence: (c: number) => void;
+}
+
+function classifyHands(opts: ClassifyOpts) {
+  const { hands, currentSign, suppressed, signStabilityRef, cooldownUntilRef, setCurrentSign, setConfidence } = opts;
+  if (!isModelLoaded() || suppressed) return;
 
   const hasHands = hands?.some(h => h.length === 21);
 
@@ -166,12 +171,6 @@ function classifyHands(
 
   const detectedSign: SignLabel = (rawSign === 'neutral' || rawSign === 'unknown') ? 'unknown' : rawSign;
 
-  const now = Date.now();
-  if (now < cooldownUntilRef.current && detectedSign !== 'unknown') {
-    setConfidence(conf);
-    return;
-  }
-
   const REQUIRED = conf > 0.85 ? 2 : 3;
 
   if (detectedSign === signStabilityRef.current.sign) {
@@ -180,11 +179,18 @@ function classifyHands(
     signStabilityRef.current = { sign: detectedSign, count: 1 };
   }
 
+  const now = Date.now();
+  // Cooldown: suppress confirming the SAME sign again, but allow NEW signs through
+  if (now < cooldownUntilRef.current && detectedSign !== 'unknown' && detectedSign === currentSign) {
+    setConfidence(conf);
+    return;
+  }
+
   if (signStabilityRef.current.count >= REQUIRED && currentSign !== detectedSign) {
     setCurrentSign(detectedSign);
     if (detectedSign !== 'unknown') {
       console.log('✅ Confirmed sign:', detectedSign.toUpperCase());
-      cooldownUntilRef.current = Date.now() + 1000;
+      cooldownUntilRef.current = Date.now() + 600;
     }
   }
 
@@ -204,6 +210,7 @@ function App() {
   const setConfidence = useAppStore((state) => state.setConfidence);
   const shadowCloneActive = useAppStore((state) => state.shadowCloneActive);
   const rasenganActive = useAppStore((state) => state.rasenganActive);
+  const chidoriActive = useAppStore((state) => state.chidoriActive);
   const shadowHoldStartTime = useAppStore((state) => state.shadowHoldStartTime);
 
   // ── Game store integration ──────────────────────────
@@ -253,6 +260,9 @@ function App() {
 
   // Rasengan: backend-driven temporal gesture detection
   useRasenganDetection(hands);
+
+  // Chidori: sequence-driven (Ox → Hare → Monkey) + open palm
+  useChidoriDetection(hands);
 
   // ── Drill ready → active transition (brief delay to prevent false triggers) ──
   useEffect(() => {
@@ -312,12 +322,13 @@ function App() {
 
   // Classify hands locally — no API round-trip, runs synchronously (~1-2 ms)
   useEffect(() => {
-    classifyHands(
-      hands, currentSign, rasenganActive,
+    classifyHands({
+      hands, currentSign,
+      suppressed: rasenganActive || chidoriActive,
       signStabilityRef, cooldownUntilRef,
       setCurrentSign, setConfidence,
-    );
-  }, [hands, setCurrentSign, setConfidence, currentSign, rasenganActive]);
+    });
+  }, [hands, setCurrentSign, setConfidence, currentSign, rasenganActive, chidoriActive]);
 
   const jutsuLabels: Record<string, string> = {
     clone: 'CLONE TECHNIQUE',
@@ -361,6 +372,8 @@ function App() {
         <HandOverlay hands={hands} />
 
         <RasenganOverlay hands={hands} videoElement={videoRef.current} />
+
+        <ChidoriOverlay hands={hands} videoElement={videoRef.current} />
       </div>
 
       <div className="game-hud">
@@ -441,6 +454,7 @@ function App() {
           )}
 
           <ChakraReadyIndicator />
+          <ChidoriReadyIndicator />
         </div>
       </div>
     </div>

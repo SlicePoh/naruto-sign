@@ -11,6 +11,7 @@ export { BattlePage } from './pages/BattlePage';
 export { BattleGuidePage } from './pages/BattleGuidePage';
 export { OnlineLobbyPage } from './pages/OnlineLobbyPage';
 export { ClanManagementPage } from './pages/ClanManagementPage';
+export { FreestylePage } from './pages/FreestylePage';
 export { BattleComingSoonPage, OnlineComingSoonPage, ClansComingSoonPage } from './pages/ComingSoonPage';
 export { TutorialOverlay } from './TutorialOverlay';
 export { GameNav } from './GameNav';

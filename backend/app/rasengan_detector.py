@@ -47,7 +47,7 @@ class RasenganDetector:
                     delta = (delta + np.pi) % (2 * np.pi) - np.pi
                     angular_change += abs(delta)
 
-        # --- State machine ---
+        # State machine 
         if self.state == "IDLE":
             if wrist_dist < self.WRIST_CLOSE:
                 self.state = "FORMING"
@@ -57,9 +57,7 @@ class RasenganDetector:
             if wrist_dist > self.WRIST_FAR:
                 self.reset()
                 return self.state
-
             elapsed = time.time() - self.start_time
-
             # Fast path: spinning motion detected → jump to SPINNING
             if angular_change > self.SPIN_ANGULAR:
                 self.state = "SPINNING"

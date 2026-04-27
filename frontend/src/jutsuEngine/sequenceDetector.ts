@@ -1,7 +1,7 @@
 import type { SignLabel } from '../classifier/types';
 import { JUTSUS, type JutsuKey } from './jutsuRegistry';
 
-const SIGN_TIMEOUT = 3000; // 3 seconds between signs
+const SIGN_TIMEOUT = 5000; // 5 seconds between signs
 const DUPLICATE_THRESHOLD = 500; // Ignore same sign within 500ms
 
 export class SequenceDetector {
@@ -38,6 +38,8 @@ export class SequenceDetector {
     this.buffer.push(sign);
     this.lastSign = sign;
     this.lastSignTime = now;
+
+    console.log(`🖐️ Sequence buffer: [${this.buffer.join(' → ')}]`);
 
     // Keep buffer size limited (max length of longest jutsu)
     const maxLen = Math.max(...Object.values(JUTSUS).map(s => s.length));

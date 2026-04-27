@@ -309,7 +309,7 @@ export const JUTSU_CATALOG: JutsuDef[] = [
     name: 'Chidori',
     description: 'Concentrate lightning chakra into a piercing strike.',
     difficulty: 'advanced',
-    requiredSigns: ['rat', 'tiger', 'dog'],
+    requiredSigns: ['ox', 'hare', 'monkey'],
     requiredRank: 'chunin',
     requiredMastery: { fireball: 50 },
     requiredNature: 'lightning',

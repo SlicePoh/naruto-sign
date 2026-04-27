@@ -20,6 +20,7 @@ export type SignLabel =
   | "boar"
   | "ox"
   | "dragon"
+  | "monkey"
   | "unknown";
 
 export type JutsuName =

@@ -19,7 +19,7 @@ const TRIAL_POOL: JutsuTrial[] = [
   { name: 'Shadow Clone Jutsu', jutsuKey: 'shadowClone', description: 'Hold the Shadow sign for 2 seconds' },
   { name: 'Rasengan', jutsuKey: 'rasengan', description: 'Form chakra with both hands, then open your palm' },
   { name: 'Fire Style: Fireball', jutsuKey: 'fireball', description: 'Serpent → Ram → Horse → Tiger' },
-  { name: 'Chidori', jutsuKey: 'chidori', description: 'Rat → Tiger → Dog' },
+  { name: 'Chidori', jutsuKey: 'chidori', description: 'Ox → Hare → Monkey, then open palm' },
 ];
 
 function pickTrial(exclude?: Exclude<JutsuName, null>): JutsuTrial {
@@ -44,6 +44,11 @@ interface AppState {
   rasenganEndTime: number | null;
   rasenganPalmPosition: RasenganPalmPosition | null;
 
+  // Chidori state
+  chidoriReady: boolean;
+  chidoriActive: boolean;
+  chidoriEndTime: number | null;
+
   // Game state
   score: number;
   currentTrial: JutsuTrial;
@@ -67,6 +72,11 @@ interface AppState {
   activateRasengan: () => void;
   deactivateRasengan: () => void;
   setRasenganPalmPosition: (pos: RasenganPalmPosition | null) => void;
+
+  // Chidori actions
+  setChidoriReady: (ready: boolean) => void;
+  activateChidori: () => void;
+  deactivateChidori: () => void;
 
   // Game actions
   awardPoints: (pts: number) => void;
@@ -93,6 +103,11 @@ export const useAppStore = create<AppState>((set) => ({
   rasenganActive: false,
   rasenganEndTime: null,
   rasenganPalmPosition: null,
+
+  // Chidori state defaults
+  chidoriReady: false,
+  chidoriActive: false,
+  chidoriEndTime: null,
 
   // Game state defaults
   score: 0,
@@ -164,6 +179,25 @@ export const useAppStore = create<AppState>((set) => ({
 
   setRasenganPalmPosition: (pos) =>
     set({ rasenganPalmPosition: pos }),
+
+  // Chidori actions
+  setChidoriReady: (ready) =>
+    set({ chidoriReady: ready }),
+
+  activateChidori: () =>
+    set({
+      chidoriReady: false,
+      chidoriActive: true,
+      chidoriEndTime: Date.now() + 5_000,
+    }),
+
+  deactivateChidori: () =>
+    set({
+      chidoriReady: false,
+      chidoriActive: false,
+      chidoriEndTime: null,
+      activeJutsu: null,
+    }),
 
   // Game actions
   awardPoints: (pts) =>

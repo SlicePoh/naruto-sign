@@ -9,7 +9,7 @@ export const JUTSUS = {
   shadowClone: ['shadow'] as SignLabel[],
   fireball: ['serpent', 'ram', 'horse', 'tiger'] as SignLabel[],
   // Advanced
-  chidori: ['rat', 'tiger', 'dog'] as SignLabel[],
+  chidori: ['ox', 'hare', 'monkey'] as SignLabel[],
   waterDragon: ['ox', 'horse', 'hare', 'ram', 'dog'] as SignLabel[],
   // Master
   earthWall: ['tiger', 'hare', 'boar', 'dog'] as SignLabel[],

@@ -1,14 +1,15 @@
-import cv2
-import mediapipe as mp
+import cv2  # type: ignore
+import mediapipe as mp  # type: ignore
 import time
 import csv
-import numpy as np
-import joblib 
+import numpy as np  # type: ignore
+import joblib
 from pathlib import Path
 from collections import deque
-from mediapipe.tasks import python
-from mediapipe.tasks.python import vision
+from mediapipe.tasks import python  # type: ignore
+from mediapipe.tasks.python import vision  # type: ignore
 from rasengan_detector import RasenganDetector
+from features import extract_features, palm_open, CONF_THRESHOLD, CLASS_THRESHOLDS
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 MODEL_PATH = BASE_DIR / "app" / "models" / "hand_landmarker.task"
@@ -19,7 +20,13 @@ options = vision.HandLandmarkerOptions( base_options=base_options, num_hands=2,
     min_hand_presence_confidence=0.4, min_tracking_confidence=0.4
 )
 detector = vision.HandLandmarker.create_from_options(options)
-model = joblib.load("hand_sign_model.pkl")
+MODEL_PKL = Path("hand_sign_model.pkl")
+if MODEL_PKL.exists():
+    model = joblib.load(str(MODEL_PKL))
+    print("Model loaded.")
+else:
+    model = None
+    print("No model found — recording mode only.")
 rasengan_detector = RasenganDetector()
 cap = cv2.VideoCapture(0)
 if not cap.isOpened():
@@ -33,38 +40,7 @@ SIGN_COLORS = {
     "ox": (150, 150, 255), "dragon": (0, 165, 255), "monkey": (0, 200, 150),
 }
 
-def extract_features(hand_landmarks):
-    coords = []
-    for lm in hand_landmarks:
-        coords.append(np.array([lm.x, lm.y, lm.z]))
-    wrist = coords[0]
-    middle_mcp = coords[9]
-    hand_size = np.linalg.norm(middle_mcp - wrist) + 1e-6
-    features = []
-    for point in coords:
-        delta = (point - wrist) / hand_size
-        features.extend(delta.tolist())
-    finger_triplets = [ (1,2,3),(2,3,4), (5,6,7),(6,7,8), (9,10,11),(10,11,12), (13,14,15),(14,15,16), (17,18,19),(18,19,20) ]
-    for a,b,c in finger_triplets:
-        ba = coords[a] - coords[b]
-        bc = coords[c] - coords[b]
-        cos_angle = np.dot(ba, bc) / (
-            (np.linalg.norm(ba) * np.linalg.norm(bc)) + 1e-6
-        )
-        angle = np.degrees(
-            np.arccos(np.clip(cos_angle, -1.0, 1.0))
-        ) / 180.0
-        features.append(angle)
-    tip_pairs = [(4,8),(8,12),(12,16),(16,20)]
-    for a,b in tip_pairs:
-        dist = np.linalg.norm(coords[a] - coords[b]) / hand_size
-        features.append(dist)
-    v1 = coords[9] - wrist
-    v2 = coords[17] - wrist
-    normal = np.cross(v1, v2)
-    normal = normal / (np.linalg.norm(normal) + 1e-6)
-    features.extend(normal.tolist())
-    return features
+
 
 def draw_hand(hand_landmarks, frame):
     points = []
@@ -116,20 +92,11 @@ def draw_sign_box(frame, hands, sign_name):
     cv2.rectangle( frame, (label_x, bg_top), (bg_right, bg_bottom), color, -1, )
     cv2.putText( frame, label, (label_x + 6, label_y), cv2.FONT_HERSHEY_SIMPLEX, 0.6, (255, 255, 255), 2, )
 
-def palm_open(hand):
-    tips = [8,12,16,20]
-    mcps = [5,9,13,17]
-    open_count = 0
-    for t, m in zip(tips, mcps):
-        if hand[t].y < hand[m].y:
-            open_count += 1
-    return open_count >= 3
 label = "neutral"
 record = False
 file = open("dataset.csv", mode="a", newline="")
 writer = csv.writer(file)
 pred_buffer = deque(maxlen=15)
-CONF_THRESHOLD = 0.82
 
 # Key-to-label mapping for recording
 KEY_LABELS = {
@@ -183,13 +150,18 @@ while True:
     combined_features.append(dist)
     if record:
         writer.writerow(combined_features + [label])
-    probs = model.predict_proba([combined_features])[0]
-    best_idx = np.argmax(probs)
-    prediction = model.classes_[best_idx]
-    confidence = probs[best_idx]
-    if prediction != "rasengan":
-        if confidence < CONF_THRESHOLD:
-            prediction = "unknown"
+    prediction = "unknown"
+    confidence = 0.0
+    if model is not None:
+        probs = model.predict_proba([combined_features])[0]
+        best_idx = np.argmax(probs)
+        prediction = model.classes_[best_idx]
+        confidence = probs[best_idx]
+        # Per-class confidence gating (not applied to rule-based rasengan)
+        if prediction != "rasengan":
+            required = CLASS_THRESHOLDS.get(prediction, CONF_THRESHOLD)
+            if confidence < required:
+                prediction = "unknown"
     chakra_state = rasengan_detector.update(left_hand, right_hand)
     if chakra_state == "CHAKRA_READY":
         cv2.putText( frame, "CHAKRA READY", (20, 120), cv2.FONT_HERSHEY_SIMPLEX, 1,
