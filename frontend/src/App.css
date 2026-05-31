@@ -496,6 +496,38 @@ body {
   animation: scoreFlash 0.4s ease-out;
 }
 
+/* Playing (animation buffer) state */
+.drill-playing {
+  border-color: var(--hud-accent) !important;
+  box-shadow: 0 0 20px rgba(0, 229, 255, 0.25);
+}
+
+.drill-playing::before {
+  background: var(--hud-accent) !important;
+  box-shadow: 0 0 12px rgba(0, 229, 255, 0.5) !important;
+  animation: playingPulse 1.2s ease-in-out infinite;
+}
+
+.drill-playing .trial-name {
+  color: var(--hud-accent);
+}
+
+.drill-playing .trial-desc {
+  color: var(--hud-accent);
+  opacity: 0.8;
+  animation: playingTextPulse 1.5s ease-in-out infinite;
+}
+
+@keyframes playingPulse {
+  0%, 100% { box-shadow: 0 0 12px rgba(0, 229, 255, 0.5); }
+  50% { box-shadow: 0 0 24px rgba(0, 229, 255, 0.8); }
+}
+
+@keyframes playingTextPulse {
+  0%, 100% { opacity: 0.6; }
+  50% { opacity: 1; }
+}
+
 .drill-back-link {
   font-family: var(--font-body);
   font-size: 0.7rem;
@@ -514,6 +546,176 @@ body {
 .drill-back-link:hover {
   color: #fff;
   text-shadow: 0 0 8px var(--hud-primary-glow);
+}
+
+/* ── Drill Success Overlay — fullscreen celebration ───────────── */
+.drill-success-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.78);
+  backdrop-filter: blur(10px);
+  cursor: pointer;
+  animation: drillSuccessFadeIn 0.3s ease;
+  border: none;
+  padding: 0;
+  margin: 0;
+  width: 100vw;
+  height: 100vh;
+  font: inherit;
+  color: inherit;
+  outline: none;
+}
+
+.drill-success-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  animation: drillSuccessPopIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.drill-success-check {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  background: var(--hud-success);
+  color: #000;
+  font-size: 2.5rem;
+  font-weight: 900;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 0 40px rgba(0, 255, 136, 0.4), 0 0 80px rgba(0, 255, 136, 0.15);
+  animation: drillCheckPulse 1.5s ease-in-out infinite;
+}
+
+.drill-success-heading {
+  font-family: var(--font-display);
+  font-size: 1.8rem;
+  font-weight: 900;
+  letter-spacing: 4px;
+  text-transform: uppercase;
+  color: #fff;
+  margin: 8px 0 0;
+  text-shadow: 0 0 20px rgba(0, 255, 136, 0.4);
+}
+
+.drill-success-name {
+  font-family: var(--font-display);
+  font-size: 1.1rem;
+  font-weight: 700;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--hud-primary);
+  text-shadow: 0 0 10px var(--hud-primary-glow);
+}
+
+.drill-success-xp-badge {
+  font-family: var(--font-display);
+  font-size: 2rem;
+  font-weight: 900;
+  color: #ffcc00;
+  text-shadow: 0 0 20px rgba(255, 204, 0, 0.5);
+  animation: drillXpPulse 0.8s ease-out;
+  margin: 4px 0;
+}
+
+.drill-success-progress {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  width: 220px;
+  margin: 8px 0;
+}
+
+.drill-success-progress-track {
+  width: 100%;
+  height: 6px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+.drill-success-progress-fill {
+  height: 100%;
+  background: var(--hud-success);
+  border-radius: 3px;
+  transition: width 0.5s ease;
+  box-shadow: 0 0 8px rgba(0, 255, 136, 0.4);
+}
+
+.drill-success-progress-label {
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  color: var(--hud-text-dim);
+  letter-spacing: 2px;
+}
+
+.drill-success-next {
+  font-family: var(--font-body);
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--hud-text-dim);
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  margin-top: 4px;
+}
+
+.drill-success-btn {
+  font-family: var(--font-display);
+  font-size: 0.9rem;
+  font-weight: 700;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  padding: 12px 32px;
+  border: 1px solid var(--hud-primary);
+  background: rgba(0, 229, 255, 0.08);
+  color: var(--hud-primary);
+  cursor: pointer;
+  margin-top: 12px;
+  transition: all 0.2s ease;
+  clip-path: polygon(8px 0, 100% 0, calc(100% - 8px) 100%, 0 100%);
+}
+
+.drill-success-btn:hover {
+  background: var(--hud-primary);
+  color: #000;
+  box-shadow: 0 0 20px var(--hud-primary-glow);
+}
+
+.drill-success-hint {
+  font-family: var(--font-body);
+  font-size: 0.6rem;
+  color: rgba(255, 255, 255, 0.2);
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  margin-top: 10px;
+}
+
+@keyframes drillSuccessFadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes drillSuccessPopIn {
+  from { opacity: 0; transform: scale(0.7) translateY(30px); }
+  to { opacity: 1; transform: scale(1) translateY(0); }
+}
+
+@keyframes drillCheckPulse {
+  0%, 100% { transform: scale(1); box-shadow: 0 0 40px rgba(0, 255, 136, 0.4); }
+  50% { transform: scale(1.12); box-shadow: 0 0 60px rgba(0, 255, 136, 0.6); }
+}
+
+@keyframes drillXpPulse {
+  0% { transform: scale(0.5); opacity: 0; }
+  50% { transform: scale(1.25); }
+  100% { transform: scale(1); opacity: 1; }
 }
 
 .back-to-training {

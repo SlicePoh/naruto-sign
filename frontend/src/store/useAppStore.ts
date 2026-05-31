@@ -19,7 +19,8 @@ const TRIAL_POOL: JutsuTrial[] = [
   { name: 'Shadow Clone Jutsu', jutsuKey: 'shadowClone', description: 'Hold the Shadow sign for 2 seconds' },
   { name: 'Rasengan', jutsuKey: 'rasengan', description: 'Form chakra with both hands, then open your palm' },
   { name: 'Fire Style: Fireball', jutsuKey: 'fireball', description: 'Serpent → Ram → Horse → Tiger' },
-  { name: 'Chidori', jutsuKey: 'chidori', description: 'Ox → Hare → Monkey, then open palm' },
+  { name: 'Chidori', jutsuKey: 'chidori', description: 'Ox → Hare → Monkey, then open palm to aim' },
+  { name: 'Substitution Jutsu', jutsuKey: 'substitution', description: 'Ram → Boar → Ox → Dog → Serpent' },
 ];
 
 function pickTrial(exclude?: Exclude<JutsuName, null>): JutsuTrial {
@@ -49,6 +50,10 @@ interface AppState {
   chidoriActive: boolean;
   chidoriEndTime: number | null;
 
+  // Substitution state
+  substitutionActive: boolean;
+  substitutionEndTime: number | null;
+
   // Game state
   score: number;
   currentTrial: JutsuTrial;
@@ -77,6 +82,10 @@ interface AppState {
   setChidoriReady: (ready: boolean) => void;
   activateChidori: () => void;
   deactivateChidori: () => void;
+
+  // Substitution actions
+  activateSubstitution: () => void;
+  deactivateSubstitution: () => void;
 
   // Game actions
   awardPoints: (pts: number) => void;
@@ -108,6 +117,10 @@ export const useAppStore = create<AppState>((set) => ({
   chidoriReady: false,
   chidoriActive: false,
   chidoriEndTime: null,
+
+  // Substitution state defaults
+  substitutionActive: false,
+  substitutionEndTime: null,
 
   // Game state defaults
   score: 0,
@@ -196,6 +209,20 @@ export const useAppStore = create<AppState>((set) => ({
       chidoriReady: false,
       chidoriActive: false,
       chidoriEndTime: null,
+      activeJutsu: null,
+    }),
+
+  // Substitution actions
+  activateSubstitution: () =>
+    set({
+      substitutionActive: true,
+      substitutionEndTime: Date.now() + 6_000, // 6 seconds duration
+    }),
+
+  deactivateSubstitution: () =>
+    set({
+      substitutionActive: false,
+      substitutionEndTime: null,
       activeJutsu: null,
     }),
 

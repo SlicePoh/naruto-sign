@@ -4,7 +4,7 @@ export const JUTSUS = {
   // Basic (Academy)
   clone: ['ram', 'serpent', 'tiger'] as SignLabel[],
   transformation: ['dog', 'boar', 'ram'] as SignLabel[],
-  substitution: ['ram', 'boar', 'ox', 'dog'] as SignLabel[],
+  substitution: ['ram', 'boar', 'ox', 'dog', 'serpent'] as SignLabel[],
   // Intermediate
   shadowClone: ['shadow'] as SignLabel[],
   fireball: ['serpent', 'ram', 'horse', 'tiger'] as SignLabel[],

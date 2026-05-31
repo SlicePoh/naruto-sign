@@ -1516,38 +1516,81 @@
 
 
 /* ═══════════════════════════════════════════════════════════════
-   Tutorial Overlay
+   Tutorial Overlay — Interactive Spotlight Tour
    ═══════════════════════════════════════════════════════════════ */
 
-.tutorial-overlay {
+/* Click blocker — catches all clicks, sits behind elevated targets */
+.tutorial-click-blocker {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  pointer-events: auto;
+  background: transparent;
+  animation: tutorialFadeIn 0.4s ease;
+}
+
+/* Full dark backdrop for center-card steps (no spotlight) */
+.tutorial-full-backdrop {
   position: fixed;
   inset: 0;
   z-index: 10000;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  animation: tutorialFadeIn 0.5s ease;
+  background: rgba(0, 0, 0, 0.85);
+  backdrop-filter: blur(4px);
+  pointer-events: none;
+  animation: tutorialFadeIn 0.4s ease;
 }
 
-.tutorial-overlay.tutorial-exit {
-  animation: tutorialFadeOut 0.4s ease forwards;
+/* Spotlight — box-shadow creates the dark overlay with a "hole" */
+.tutorial-spotlight {
+  position: fixed;
+  z-index: 10000;
+  border-radius: 8px;
+  box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.85);
+  border: 2px solid rgba(0, 229, 255, 0.6);
+  pointer-events: none;
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  animation: spotlightAppear 0.5s ease;
 }
 
-.tutorial-backdrop {
+.tutorial-spotlight::after {
+  content: '';
   position: absolute;
-  inset: 0;
-  background: rgba(0, 0, 0, 0.82);
-  backdrop-filter: blur(6px);
+  inset: -4px;
+  border-radius: 10px;
+  border: 1px solid rgba(0, 229, 255, 0.2);
+  animation: spotlightPulse 2s ease-in-out infinite;
 }
 
-.tutorial-card {
-  position: relative;
-  z-index: 1;
+/* Pointer arrow next to spotlight */
+.tutorial-pointer {
+  position: fixed;
+  z-index: 10001;
+  color: var(--hud-accent);
+  font-size: 1.4rem;
+  pointer-events: none;
+  animation: pointerBounce 1s ease-in-out infinite;
+  filter: drop-shadow(0 0 6px rgba(0, 229, 255, 0.5));
+}
+
+/* Elevated target — sits above click-blocker so it's clickable */
+.tutorial-elevated {
+  position: relative !important;
+  z-index: 10001 !important;
+  box-shadow: 0 0 0 4px rgba(0, 229, 255, 0.3);
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+/* Tutorial card — instruction tooltip */
+.tutorial-card-v2 {
+  position: fixed;
+  z-index: 10002;
+  pointer-events: auto;
   background: linear-gradient(145deg, rgba(10, 15, 30, 0.97), rgba(15, 25, 50, 0.95));
   border: 1px solid var(--hud-accent);
   border-radius: 16px;
-  padding: 40px 48px;
-  max-width: 480px;
+  padding: 32px 36px;
+  max-width: 420px;
   width: 90%;
   text-align: center;
   box-shadow:
@@ -1556,6 +1599,17 @@
     inset 0 1px 0 rgba(255, 255, 255, 0.05);
 }
 
+/* Action hint for click steps */
+.tutorial-action-hint {
+  font-family: var(--font-body);
+  font-size: 0.8rem;
+  color: var(--hud-accent);
+  margin: 4px 0 8px;
+  font-weight: 600;
+  animation: hintPulse 1.5s ease-in-out infinite;
+}
+
+/* Slide animations (reused for both v1 and v2 cards) */
 .tutorial-slide-next {
   animation: tutorialSlideNext 0.4s ease;
 }
@@ -1564,11 +1618,12 @@
   animation: tutorialSlidePrev 0.4s ease;
 }
 
+/* Progress dots */
 .tutorial-progress {
   display: flex;
   justify-content: center;
   gap: 6px;
-  margin-bottom: 24px;
+  margin-bottom: 20px;
 }
 
 .tutorial-dot {
@@ -1590,34 +1645,34 @@
 }
 
 .tutorial-icon {
-  font-size: 3.5rem;
-  margin-bottom: 16px;
+  font-size: 3rem;
+  margin-bottom: 12px;
   animation: tutorialIconPulse 2s ease-in-out infinite;
 }
 
 .tutorial-title {
   font-family: var(--font-display);
-  font-size: 1.5rem;
+  font-size: 1.4rem;
   font-weight: 800;
   letter-spacing: 2px;
   text-transform: uppercase;
   color: #fff;
-  margin: 0 0 12px;
+  margin: 0 0 10px;
 }
 
 .tutorial-desc {
   font-family: var(--font-body);
-  font-size: 0.95rem;
+  font-size: 0.9rem;
   color: var(--hud-text-dim);
   line-height: 1.6;
-  margin: 0 0 20px;
+  margin: 0 0 16px;
 }
 
 .tutorial-step-label {
   font-family: var(--font-mono);
-  font-size: 0.75rem;
+  font-size: 0.7rem;
   color: rgba(255, 255, 255, 0.3);
-  margin-bottom: 20px;
+  margin-bottom: 16px;
   letter-spacing: 2px;
 }
 
@@ -1625,7 +1680,7 @@
   display: flex;
   justify-content: center;
   gap: 12px;
-  margin-bottom: 16px;
+  margin-bottom: 12px;
 }
 
 .tutorial-btn {
@@ -1679,25 +1734,11 @@
   color: rgba(255, 255, 255, 0.6);
 }
 
-/* Nav link highlight during tutorial */
-.nav-link.tutorial-highlight {
-  position: relative;
-  color: var(--hud-accent) !important;
-  text-shadow: 0 0 10px var(--hud-accent);
-  animation: tutorialNavPulse 1.5s ease-in-out infinite;
+.tutorial-exit {
+  animation: tutorialFadeOut 0.4s ease forwards;
 }
 
-.nav-link.tutorial-highlight::after {
-  content: '';
-  position: absolute;
-  bottom: -2px;
-  left: 0;
-  right: 0;
-  height: 2px;
-  background: var(--hud-accent);
-  box-shadow: 0 0 8px var(--hud-accent);
-  animation: tutorialNavUnderline 1.5s ease-in-out infinite;
-}
+/* ── Animations ─────────────────────────────────────────────── */
 
 @keyframes tutorialFadeIn {
   from { opacity: 0; }
@@ -1724,14 +1765,24 @@
   50% { transform: scale(1.12); }
 }
 
-@keyframes tutorialNavPulse {
-  0%, 100% { text-shadow: 0 0 6px var(--hud-accent); }
-  50% { text-shadow: 0 0 18px var(--hud-accent), 0 0 30px rgba(0, 229, 255, 0.3); }
+@keyframes spotlightAppear {
+  from { opacity: 0; transform: scale(0.95); }
+  to { opacity: 1; transform: scale(1); }
 }
 
-@keyframes tutorialNavUnderline {
-  0%, 100% { opacity: 0.6; }
-  50% { opacity: 1; }
+@keyframes spotlightPulse {
+  0%, 100% { border-color: rgba(0, 229, 255, 0.15); }
+  50% { border-color: rgba(0, 229, 255, 0.4); }
+}
+
+@keyframes pointerBounce {
+  0%, 100% { transform: translateX(0); }
+  50% { transform: translateX(-8px); }
+}
+
+@keyframes hintPulse {
+  0%, 100% { opacity: 0.8; }
+  50% { opacity: 1; text-shadow: 0 0 8px rgba(0, 229, 255, 0.4); }
 }
 
 

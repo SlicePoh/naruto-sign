@@ -4,22 +4,8 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import './index.css'
 import './game/game.css'
 import App from './App.tsx'
-import {
-  OnboardingPage,
-  DashboardPage,
-  TrainingPage,
-  JutsuTreePage,
-  AcademyGuidePage,
-  ExamPage,
-  MissionsPage,
-  ClanHallPage,
-  BattleComingSoonPage,
-  OnlineComingSoonPage,
-  ClansComingSoonPage,
-  FreestylePage,
-  TutorialOverlay,
-  useGameStore,
-} from './game'
+import { OnboardingPage, DashboardPage, TrainingPage, JutsuTreePage, AcademyGuidePage, ExamPage, MissionsPage, ClanHallPage,
+    BattleComingSoonPage, OnlineComingSoonPage, ClansComingSoonPage, FreestylePage, TutorialOverlay, useGameStore } from './game'
 
 function AppRouter() {
   const profile = useGameStore((s) => s.profile);

@@ -57,9 +57,9 @@ export function useJutsuEngine(currentSign: SignLabel) {
         console.log(`⚡ Hold jutsu activated: ${holdJutsu}`);
         triggerJutsu(holdJutsu);
       }
-    } else if (activeJutsu && HOLD_JUTSUS.has(activeJutsu as JutsuKey) && activeJutsu !== 'rasengan' && activeJutsu !== 'chidori') {
+    } else if (activeJutsu && HOLD_JUTSUS.has(activeJutsu as JutsuKey) && activeJutsu !== 'rasengan' && activeJutsu !== 'chidori' && activeJutsu !== 'substitution') {
       // The active jutsu is a hold-type and the sign changed — clear it
-      // (rasengan & chidori are managed by their own lifecycle timers, never clear them here)
+      // (rasengan, chidori & substitution are managed by their own lifecycle timers, never clear them here)
       console.log(`⚡ Hold jutsu cleared`);
       clearJutsu();
     }

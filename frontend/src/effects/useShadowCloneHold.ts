@@ -11,6 +11,7 @@ export function useShadowCloneHold(currentSign: SignLabel) {
   const deactivateShadowClone = useAppStore((s) => s.deactivateShadowClone);
   const triggerJutsu = useAppStore((s) => s.triggerJutsu);
   const clearJutsu = useAppStore((s) => s.clearJutsu);
+  const setShadowHoldStart = useAppStore((s) => s.setShadowHoldStart);
 
   const holdStartRef = useRef<number | null>(null);
   const holdTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -24,7 +25,9 @@ export function useShadowCloneHold(currentSign: SignLabel) {
     if (currentSign === 'shadow') {
       // Start the hold timer if not already running
       if (holdStartRef.current === null) {
-        holdStartRef.current = Date.now();
+        const now = Date.now();
+        holdStartRef.current = now;
+        setShadowHoldStart(now);
 
         holdTimerRef.current = setTimeout(() => {
           // Timer fired → activate
@@ -32,6 +35,7 @@ export function useShadowCloneHold(currentSign: SignLabel) {
           activateShadowClone();
           triggerJutsu('shadowClone');
           holdStartRef.current = null;
+          setShadowHoldStart(null);
         }, HOLD_DURATION_MS);
       }
     } else {
@@ -41,16 +45,18 @@ export function useShadowCloneHold(currentSign: SignLabel) {
         holdTimerRef.current = null;
       }
       holdStartRef.current = null;
+      setShadowHoldStart(null);
     }
 
     return () => {
-      // Cleanup on unmount / deps change
+      // Cleanup on unmount / deps change (StrictMode-safe)
       if (holdTimerRef.current !== null) {
         clearTimeout(holdTimerRef.current);
         holdTimerRef.current = null;
       }
+      holdStartRef.current = null;
     };
-  }, [currentSign, shadowCloneActive, activateShadowClone, triggerJutsu]);
+  }, [currentSign, shadowCloneActive, activateShadowClone, triggerJutsu, setShadowHoldStart]);
 
   // ── Auto-deactivation after JUTSU_DURATION_MS ──────────────────
   useEffect(() => {
